@@ -6,7 +6,7 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 
 ## 📋 Exercise Submissions
 
-| Exercise | Application / Release Link | Description |
+| Exercise | Task | Description |
 | :--- | :--- | :--- |
-| **0.1** | Read info page | Completed |
+| [**1.1**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/main/log_output) | Getting started | Completed |
 <!-- Add future exercise links below as releases are created -->
