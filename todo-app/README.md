@@ -1,4 +1,6 @@
-# todo_app
+# Todo App
+
+## Development
 
 To install dependencies:
 
@@ -6,10 +8,28 @@ To install dependencies:
 bun install
 ```
 
-To run:
+To run locally:
 
 ```bash
 bun run index.ts
 ```
 
-This project was created using `bun init` in bun v1.4.0. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+## Container Build
+
+Build the Docker image:
+
+```bash
+docker build -t todo-app .
+```
+
+## Kubernetes Deployment
+
+1. Load image into k3d cluster:
+   ```bash
+   k3d image import todo-app:latest
+   ```
+
+2. Apply manifests:
+   ```bash
+   kubectl apply -f manifests/deployment.yaml
+   ```
