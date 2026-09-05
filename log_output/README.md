@@ -1,11 +1,8 @@
 # Log Output Application
 
-1. Build the container image:
-   ```bash
-   docker build -t log-output .
-   ```
+## Kubernetes Deployment
 
-2. Run the container:
-   ```bash
-   docker run --rm log-output
-   ```
+```bash
+k3d image import log-output-writer log-output-responder
+kubectl apply -f manifests/
+```
