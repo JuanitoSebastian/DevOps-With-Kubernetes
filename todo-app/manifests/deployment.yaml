@@ -16,3 +16,6 @@ spec:
         - name: todo-app
           image: todo-app
           imagePullPolicy: IfNotPresent
+          env:
+            - name: PORT
+              value: "3001"
