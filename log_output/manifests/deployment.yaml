@@ -14,7 +14,8 @@ spec:
     spec:
       volumes:
         - name: shared-logs
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: log-pingpong-claim
       containers:
         - name: log-writer
           image: log-output-writer

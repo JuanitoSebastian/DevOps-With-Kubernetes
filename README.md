@@ -18,4 +18,5 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**1.8**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/1.8) | The project, step 5 | Completed |
 | [**1.9**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/1.9) | More services | Completed |
 | [**1.10**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/1.10) | Even more services | Completed |
+| [**1.11**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/1.11) | Persisting data | Completed |
 <!-- Add future exercise links below as releases are created -->

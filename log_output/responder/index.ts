@@ -1,15 +1,29 @@
 import { Hono } from "hono";
 
 const app = new Hono();
-const filePath = "/usr/src/app/files/log.txt";
+const logFilePath = "/usr/src/app/files/log.txt";
+const pingPongFilePath = "/usr/src/app/files/pingpong.txt";
 
 app.get("/", async (c) => {
-  const file = Bun.file(filePath);
-  if (await file.exists()) {
-    const logContent = await file.text();
-    return c.text(logContent);
+  let logContent = "";
+  const logFile = Bun.file(logFilePath);
+  if (await logFile.exists()) {
+    logContent = await logFile.text();
+  } else {
+    logContent = "Log file not found";
   }
-  return c.text("Log file not found", 404);
+
+  let pongs = 0;
+  const pingPongFile = Bun.file(pingPongFilePath);
+  if (await pingPongFile.exists()) {
+    const text = await pingPongFile.text();
+    const parsed = parseInt(text.trim(), 10);
+    if (!isNaN(parsed)) {
+      pongs = parsed;
+    }
+  }
+
+  return c.text(`${logContent}\nPing / Pongs: ${pongs}`);
 });
 
 const port = Number(process.env.PORT) || 3000;
