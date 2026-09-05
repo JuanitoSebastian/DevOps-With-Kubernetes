@@ -31,5 +31,10 @@ docker build -t todo-app .
 
 2. Apply manifests:
    ```bash
-   kubectl apply -f manifests/deployment.yaml
+   kubectl apply -f manifests/
+   ```
+
+3. Access application:
+   ```bash
+   curl http://localhost:8081
    ```
