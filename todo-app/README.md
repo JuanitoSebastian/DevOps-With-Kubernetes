@@ -1,6 +1,6 @@
 # Todo App
 
-Todo application built with **Bun**, **React**, **Tailwind CSS**, **shadcn/ui**, and **React Router**.
+Todo application built with **Bun**, **React**, **Tailwind CSS**, **shadcn/ui**, and **React Router** (Framework mode with SSR).
 
 ## Running locally
 
@@ -9,16 +9,16 @@ bun install
 bun dev
 ```
 
-`bun dev` starts the Bun server with hot reloading at http://localhost:3000.
+`bun dev` starts the React Router dev server (Bun + Vite, HMR) at http://localhost:3000 (honors the `PORT` environment variable).
 
 To run for production:
 
 ```bash
-bun build
-bun start
+bun run build
+bun run start
 ```
 
-The server listens on the `PORT` environment variable (default `3000`).
+`bun run start` serves the production build from `build/` with a custom `Bun.serve` server (SSR via React Router's `createRequestHandler`). The server listens on the `PORT` environment variable (default `3000`).
 
 ## Header image (Exercise 1.12)
 
@@ -80,19 +80,32 @@ docker build -t todo-app .
 
 ## Stack
 
-- **Bun** — runtime and bundler (`bun-plugin-tailwind` handles Tailwind in-tree)
+- **Bun** — runtime and package manager (`Bun.serve` powers the production server)
 - **React 19** — UI
-- **React Router** — data router (route modules in `src/routes/`)
-- **Tailwind CSS v4** + **shadcn/ui** — styling (`styles/globals.css`)
+- **React Router 8** — Framework mode (SSR), Vite plugin via `@react-router/dev` (no
+  `@react-router/serve`/`@react-router/node`; the custom `Bun.serve` server speaks Web streams directly)
+- **Tailwind CSS v4** — styling via `@tailwindcss/vite` (`app/app.css`)
 
 ## Project structure
 
 ```text
-src/
-├── index.ts          # Bun HTTP server (serves the SPA + /header-image route)
-├── header-image.ts   # Header image cache: fetch, freshness check, pruning
-├── index.html        # HTML entry point
-├── frontend.tsx      # React root rendering (RouterProvider)
-├── router.tsx        # createBrowserRouter route definitions
-└── routes/           # Route modules (components + async loaders)
+app/
+├── root.tsx            # Document shell (Layout, Meta/Links/Scripts, ErrorBoundary)
+├── entry.server.tsx    # Custom SSR entry (renderToReadableStream, Bun-native)
+├── routes.ts           # Route table (landing page + header-image resource route)
+├── routes/             # Route modules (loaders + components)
+├── header-image.tsx    # (in routes/) Header image cache: fetch, freshness check, pruning
+└── app.css             # Tailwind v4 entry stylesheet
+server.ts               # Production Bun.serve server (static assets + SSR handler)
+react-router.config.ts  # { ssr: true }
+vite.config.ts          # reactRouter() + tailwindcss() plugins
 ```
+
+## Scripts
+
+| Script      | Command                                                            |
+| :---------- | :----------------------------------------------------------------- |
+| `dev`       | `bun --bun --conditions=development ./node_modules/.bin/react-router dev` |
+| `build`     | `bun --bun ./node_modules/.bin/react-router build`                 |
+| `start`     | `NODE_ENV=production bun run server.ts`                            |
+| `typecheck` | `bun --bun ./node_modules/.bin/react-router typegen && tsc`        |

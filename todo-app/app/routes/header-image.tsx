@@ -1,9 +1,9 @@
+import type { Route } from "./+types/header-image";
+
 const imageDir = process.env.HEADER_IMAGE_DIR ?? "/usr/src/todo-app/header-image";
 const maxAgeMinutes = Number(process.env.IMAGE_MAX_AGE_MINUTES) || 10;
 const imageUrl = process.env.HEADER_IMAGE_URL ?? "https://picsum.photos/1200";
 const maxAgeMs = maxAgeMinutes * 60 * 1000;
-
-await Bun.$`mkdir -p ${imageDir}`;
 
 const now = () => Date.now();
 
@@ -50,7 +50,9 @@ async function cacheImage(): Promise<string> {
   return filePath;
 }
 
-export async function handleHeaderImage(): Promise<Response> {
+export async function loader(_args: Route.LoaderArgs): Promise<Response> {
+  await Bun.$`mkdir -p ${imageDir}`;
+
   const cached = newestCached();
 
   if (cached && cached.ageMs < maxAgeMs) {
@@ -62,6 +64,8 @@ export async function handleHeaderImage(): Promise<Response> {
     return serveFile(path);
   } catch (error) {
     console.error("Failed to refresh header image:", error);
-    return cached ? serveFile(cached.path) : new Response("Header image unavailable", { status: 503 });
+    return cached
+      ? serveFile(cached.path)
+      : new Response("Header image unavailable", { status: 503 });
   }
 }

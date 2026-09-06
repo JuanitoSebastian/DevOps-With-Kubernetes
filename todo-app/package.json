@@ -4,21 +4,26 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun --hot src/index.ts",
-    "start": "NODE_ENV=production bun src/index.ts",
-    "build": "bun run build.ts"
+    "dev": "bun --bun --conditions=development ./node_modules/.bin/react-router dev",
+    "start": "NODE_ENV=production bun run server.ts",
+    "build": "bun --bun ./node_modules/.bin/react-router build",
+    "typecheck": "bun --bun ./node_modules/.bin/react-router typegen && tsc"
   },
   "dependencies": {
-    "bun-plugin-tailwind": "^0.1.2",
     "react": "^19",
     "react-dom": "^19",
     "react-router": "^8.3.1"
   },
   "devDependencies": {
+    "@react-router/dev": "^8.3.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/bun": "latest",
+    "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/bun": "latest",
-    "tailwindcss": "^4.1.11"
+    "isbot": "^5.2.2",
+    "tailwindcss": "^4.1.11",
+    "vite": "^8.2.2"
   },
   "peerDependencies": {
     "typescript": "^7"

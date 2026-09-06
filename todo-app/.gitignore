@@ -4,7 +4,11 @@ node_modules
 # output
 out
 dist
+build
 *.tgz
+
+# react-router generated types
+.react-router
 
 # code coverage
 coverage
