@@ -31,6 +31,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .cache
 *.tsbuildinfo
 
+# app-local temp files
+.tmp
+
 # IntelliJ based IDEs
 .idea
 
