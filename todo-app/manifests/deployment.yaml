@@ -12,6 +12,10 @@ spec:
       labels:
         app: todo-app
     spec:
+      volumes:
+        - name: header-image
+          persistentVolumeClaim:
+            claimName: todo-image-claim
       containers:
         - name: todo-app
           image: todo-app
@@ -19,3 +23,10 @@ spec:
           env:
             - name: PORT
               value: "3001"
+            - name: HEADER_IMAGE_DIR
+              value: /usr/src/todo-app/header-image
+            - name: IMAGE_MAX_AGE_MINUTES
+              value: "10"
+          volumeMounts:
+            - name: header-image
+              mountPath: /usr/src/todo-app/header-image

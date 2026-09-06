@@ -1,4 +1,5 @@
 import { serve } from "bun";
+import { handleHeaderImage } from "./header-image";
 
 const production = process.env.NODE_ENV === "production";
 
@@ -9,6 +10,7 @@ const index = production
 const server = serve({
   port: Number(process.env.PORT) || 3000,
   routes: {
+    "/header-image": handleHeaderImage,
     // Serve index.html for all unmatched routes (client-side routing).
     "/*": index,
   },
