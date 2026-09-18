@@ -26,6 +26,9 @@ spec:
         - name: log-responder
           image: log-output-responder
           imagePullPolicy: IfNotPresent
+          env:
+            - name: PINGPONG_URL
+              value: "http://ping-pong-svc:2345/pings"
           volumeMounts:
             - name: shared-logs
               mountPath: /usr/src/app/files

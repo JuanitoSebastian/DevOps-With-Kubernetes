@@ -2,7 +2,7 @@ import { Hono } from "hono";
 
 const app = new Hono();
 const logFilePath = "/usr/src/app/files/log.txt";
-const pingPongFilePath = "/usr/src/app/files/pingpong.txt";
+const pingPongServiceUrl = process.env.PINGPONG_URL!;
 
 app.get("/", async (c) => {
   let logContent = "";
@@ -14,13 +14,19 @@ app.get("/", async (c) => {
   }
 
   let pongs = 0;
-  const pingPongFile = Bun.file(pingPongFilePath);
-  if (await pingPongFile.exists()) {
-    const text = await pingPongFile.text();
-    const parsed = parseInt(text.trim(), 10);
-    if (!isNaN(parsed)) {
-      pongs = parsed;
+  try {
+    const res = await fetch(pingPongServiceUrl);
+    if (res.ok) {
+      const text = await res.text();
+      const parsed = parseInt(text.trim(), 10);
+      if (!isNaN(parsed)) {
+        pongs = parsed;
+      }
+    } else {
+      console.error(`Failed to fetch pongs, status: ${res.status}`);
     }
+  } catch (e) {
+    console.error("Error fetching pongs from ping-pong service:", e);
   }
 
   return c.text(`${logContent}\nPing / Pongs: ${pongs}`);
