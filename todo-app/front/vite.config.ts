@@ -9,5 +9,11 @@ export default defineConfig({
   },
   server: {
     port: Number(process.env.PORT) || 3000,
+    proxy: {
+      "/api": {
+        target: process.env.TODO_BACKEND_URL ?? "http://localhost:3000",
+        changeOrigin: true,
+      },
+    },
   },
 });

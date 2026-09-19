@@ -1,6 +1,6 @@
 import type { Route } from "./+types/header-image";
 
-const imageDir = process.env.HEADER_IMAGE_DIR ?? "/usr/src/todo-app/header-image";
+const imageDir = process.env.HEADER_IMAGE_DIR ?? "/usr/src/todo-frontend/header-image";
 const maxAgeMinutes = Number(process.env.IMAGE_MAX_AGE_MINUTES) || 10;
 const imageUrl = process.env.HEADER_IMAGE_URL ?? "https://picsum.photos/1200";
 const maxAgeMs = maxAgeMinutes * 60 * 1000;

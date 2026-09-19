@@ -2,14 +2,23 @@ import { CreateTodoForm } from "@/components/CreateTodoForm";
 import { TodoList } from "@/components/TodoList";
 import type { Route } from "./+types/landing";
 
-export function loader(_args: Route.LoaderArgs) {
+type Todo = { id: number; text: string };
+
+export async function loader(_args: Route.LoaderArgs) {
+  const todoBackendUrl = process.env.TODO_BACKEND_URL ?? "http://localhost:3000";
+  let todos: Todo[] = [];
+  try {
+    const res = await fetch(`${todoBackendUrl}/todos`);
+    if (res.ok) {
+      todos = await res.json();
+    }
+  } catch (error) {
+    console.error("Failed to fetch todos:", error);
+  }
+
   return {
     app: "Todo App",
-    todos: [
-      { id: 1, text: "Buy milk" },
-      { id: 2, text: "Learn Kubernetes" },
-      { id: 3, text: "Deploy todo app" },
-    ],
+    todos,
   };
 }
 
