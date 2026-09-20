@@ -17,6 +17,12 @@ spec:
         - name: shared-logs
           persistentVolumeClaim:
             claimName: log-pingpong-claim
+        - name: config
+          configMap:
+            name: log-output-config
+            items:
+              - key: information.txt
+                path: information.txt
       containers:
         - name: log-writer
           image: log-output-writer
@@ -30,6 +36,14 @@ spec:
           env:
             - name: PINGPONG_URL
               value: "http://ping-pong-svc:2345/pings"
+            - name: MESSAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: log-output-config
+                  key: MESSAGE
           volumeMounts:
             - name: shared-logs
               mountPath: /usr/src/app/files
+            - name: config
+              mountPath: /usr/src/app/config
+              readOnly: true
