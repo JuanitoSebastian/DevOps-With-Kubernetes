@@ -1,19 +1,16 @@
+import { config } from "../config.server";
 import type { Route } from "./+types/header-image";
-
-const imageDir = process.env.HEADER_IMAGE_DIR ?? "/usr/src/todo-frontend/header-image";
-const maxAgeMinutes = Number(process.env.IMAGE_MAX_AGE_MINUTES) || 10;
-const imageUrl = process.env.HEADER_IMAGE_URL ?? "https://picsum.photos/1200";
-const maxAgeMs = maxAgeMinutes * 60 * 1000;
 
 const now = () => Date.now();
 
 function listCachedImages(): { path: string; ageMs: number }[] {
-  const images = new Bun.Glob("*.jpg").scanSync({ cwd: imageDir });
+  const { dir } = config.headerImage;
+  const images = new Bun.Glob("*.jpg").scanSync({ cwd: dir });
   const cached: { path: string; ageMs: number }[] = [];
   for (const name of images) {
     const timestamp = Number.parseInt(name.replace(".jpg", ""), 10);
     if (Number.isFinite(timestamp)) {
-      cached.push({ path: `${imageDir}/${name}`, ageMs: now() - timestamp });
+      cached.push({ path: `${dir}/${name}`, ageMs: now() - timestamp });
     }
   }
   return cached.sort((a, b) => a.ageMs - b.ageMs);
@@ -39,19 +36,23 @@ function serveFile(path: string): Response {
 }
 
 async function cacheImage(): Promise<string> {
-  const res = await fetch(imageUrl);
+  const { dir, url } = config.headerImage;
+  const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Image API responded with ${res.status}`);
   }
   const bytes = new Uint8Array(await res.arrayBuffer());
-  const filePath = `${imageDir}/${now()}.jpg`;
+  const filePath = `${dir}/${now()}.jpg`;
   await Bun.write(filePath, bytes);
   await pruneOlderThan(filePath);
   return filePath;
 }
 
 export async function loader(_args: Route.LoaderArgs): Promise<Response> {
-  await Bun.$`mkdir -p ${imageDir}`;
+  const { dir, maxAgeMinutes } = config.headerImage;
+  const maxAgeMs = maxAgeMinutes * 60 * 1000;
+
+  await Bun.$`mkdir -p ${dir}`;
 
   const cached = newestCached();
 

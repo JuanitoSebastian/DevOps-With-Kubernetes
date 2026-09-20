@@ -6,7 +6,8 @@ React Router 8 SSR frontend (Bun + Vite, Tailwind CSS v4). Shows a random header
 
 ```bash
 bun install
-TODO_BACKEND_URL=http://localhost:3000 bun dev
+cp .env.example .env   # one-time setup — Bun auto-loads it
+bun dev
 ```
 
 `bun dev` starts the dev server at http://localhost:3000 (`PORT` env). For production:
@@ -18,13 +19,15 @@ bun run start
 
 ## Environment variables
 
-| Variable              | Default                            | Description                                   |
-| :-------------------- | :--------------------------------- | :-------------------------------------------  |
-| `PORT`                | `3000`                             | Server listen port                            |
-| `TODO_BACKEND_URL`    | unset → `http://localhost:3000`    | Base URL of the todo backend                  |
-| `HEADER_IMAGE_DIR`    | `/usr/src/todo-frontend/header-image` | Persistent directory for cached images      |
-| `IMAGE_MAX_AGE_MINUTES` | `10`                             | Max age of a cached image before refetch      |
-| `HEADER_IMAGE_URL`    | `https://picsum.photos/1200`       | Image API to fetch from                       |
+Configuration is read once in `app/config.server.ts` — the single source of truth. Any missing or invalid required variable throws at import time: the frontend refuses to start with incomplete configuration. Only `PORT` may fall back.
+
+| Variable              | Required | Default | Description                              |
+| :-------------------- | :------- | :------ | :--------------------------------------- |
+| `PORT`                | no       | `3000`  | Server listen port                       |
+| `TODO_BACKEND_URL`    | **yes**  | —       | Base URL of the todo backend             |
+| `HEADER_IMAGE_DIR`    | **yes**  | —       | Persistent directory for cached images   |
+| `IMAGE_MAX_AGE_MINUTES` | **yes** (numeric) | — | Max age of a cached image before refetch |
+| `HEADER_IMAGE_URL`    | **yes**  | —       | Image API to fetch from                  |
 
 ## Docker
 

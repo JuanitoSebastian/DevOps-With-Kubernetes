@@ -21,7 +21,6 @@ RUN bun install --frozen-lockfile --production
 
 COPY --from=build /usr/src/app/build ./build
 COPY server.ts ./
-
-EXPOSE 3000
+COPY app/config.server.ts ./app/config.server.ts
 
 CMD ["bun", "run", "server.ts"]

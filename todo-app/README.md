@@ -13,7 +13,7 @@ Two services:
 cd back && bun install && bun run index.ts          # listens on :3000
 
 # terminal 2 — frontend
-cd front && bun install && TODO_BACKEND_URL=http://localhost:3000 bun dev
+cd front && bun install && cp .env.example .env && bun dev
 ```
 
 ## Kubernetes deployment

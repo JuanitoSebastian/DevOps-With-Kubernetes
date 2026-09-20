@@ -1,3 +1,4 @@
+import { config } from "./app/config.server";
 import { serve } from "bun";
 import { createRequire } from "node:module";
 import { createRequestHandler } from "react-router";
@@ -6,10 +7,8 @@ import type { ServerBuild } from "react-router";
 const require = createRequire(import.meta.url);
 const build = require("./build/server/index.js") as ServerBuild;
 
-const production = process.env.NODE_ENV === "production";
-
 const server = serve({
-  port: Number(process.env.PORT) || 3000,
+  port: config.port,
 
   async fetch(request: Request) {
     const url = new URL(request.url);
@@ -25,7 +24,7 @@ const server = serve({
     return createRequestHandler(build, "production")(request);
   },
 
-  development: !production && {
+  development: !config.isProduction && {
     // Enable browser hot reloading in development
     hmr: true,
 

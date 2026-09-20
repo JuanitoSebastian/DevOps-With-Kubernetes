@@ -2,18 +2,29 @@ import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 
-export default defineConfig({
-  plugins: [reactRouter(), tailwindcss()],
-  resolve: {
-    tsconfigPaths: true,
-  },
-  server: {
-    port: Number(process.env.PORT) || 3000,
-    proxy: {
-      "/api": {
-        target: process.env.TODO_BACKEND_URL ?? "http://localhost:3000",
-        changeOrigin: true,
-      },
+export default defineConfig(async ({ command }) => {
+  // Dev server only: validated app config (throws on missing envs).
+  // Skipped during `react-router build`, which must run without envs.
+  const { config } =
+    command === "serve"
+      ? await import("./app/config.server.ts")
+      : { config: undefined };
+
+  return {
+    plugins: [reactRouter(), tailwindcss()],
+    resolve: {
+      tsconfigPaths: true,
     },
-  },
+    server: config
+      ? {
+          port: config.port,
+          proxy: {
+            "/api": {
+              target: config.todoBackendUrl,
+              changeOrigin: true,
+            },
+          },
+        }
+      : undefined,
+  };
 });
