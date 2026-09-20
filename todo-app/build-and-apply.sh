@@ -14,7 +14,7 @@ echo "==> Applying manifests"
 kubectl apply -f "$DIR/manifests/"
 
 echo "==> Rolling restart deployments"
-kubectl rollout restart deployment/todo-frontend-dep deployment/todo-backend-dep
+kubectl rollout restart -n project deployment/todo-frontend-dep deployment/todo-backend-dep
 
 echo "==> Done. Watching pod status... (Ctrl-C to stop)"
-kubectl get pods -w
+kubectl get pods -n project -w

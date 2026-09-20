@@ -24,4 +24,5 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**2.1**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/2.1) | Connecting pods | Completed |
 | [**2.2**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/2.2/todo-app) | The project, step 8 | Completed |
 | [**2.3**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/2.3) | Keep them separated | Completed |
+| [**2.4**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/2.4/todo-app) | The project, step 9 | Completed |
 <!-- Add future exercise links below as releases are created -->
