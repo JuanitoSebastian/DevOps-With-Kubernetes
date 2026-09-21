@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-check
+  namespace: exercises
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      containers:
+        - name: db-check
+          image: postgres:18
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              pg_isready -h postgres-svc -U postgres &&
+              PGPASSWORD=example psql -h postgres-svc -U postgres -tAc 'SELECT 1'
+      restartPolicy: Never

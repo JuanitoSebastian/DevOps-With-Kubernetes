@@ -17,3 +17,6 @@ spec:
         - name: ping-pong
           image: ping-pong
           imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              value: "postgres://postgres:example@postgres-svc:5432/postgres"

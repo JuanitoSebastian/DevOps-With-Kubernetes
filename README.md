@@ -27,4 +27,5 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**2.4**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/2.4/todo-app) | The project, step 9 | Completed |
 | [**2.5**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/2.5/log_output) | Documentation and ConfigMaps | Completed |
 | [**2.6**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/2.6/todo-app) | The project, step 10 | Completed |
+| [**2.7**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/2.7/ping-pong) | Stateful applications | Completed |
 <!-- Add future exercise links below as releases are created -->
