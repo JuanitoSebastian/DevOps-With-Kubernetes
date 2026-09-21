@@ -1,14 +1,14 @@
 import { CreateTodoForm } from "@/components/CreateTodoForm";
 import { TodoList } from "@/components/TodoList";
+import { config } from "../config.server";
 import type { Route } from "./+types/landing";
 
 type Todo = { id: number; text: string };
 
 export async function loader(_args: Route.LoaderArgs) {
-  const todoBackendUrl = process.env.TODO_BACKEND_URL ?? "http://localhost:3000";
   let todos: Todo[] = [];
   try {
-    const res = await fetch(`${todoBackendUrl}/todos`);
+    const res = await fetch(`${config.todoBackendUrl}/todos`);
     if (res.ok) {
       todos = await res.json();
     }
