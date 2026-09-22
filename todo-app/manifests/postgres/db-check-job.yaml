@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: todo-db-check
+  namespace: project
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      containers:
+        - name: todo-db-check
+          image: postgres:18
+          command: ["/bin/sh", "-c"]
+          args:
+            - >
+              pg_isready -h todo-db-svc -U postgres &&
+              PGPASSWORD=$POSTGRES_PASSWORD psql -h todo-db-svc -U postgres -tAc 'SELECT 1'
+          envFrom:
+            - secretRef:
+                name: todo-db-secret
+      restartPolicy: Never

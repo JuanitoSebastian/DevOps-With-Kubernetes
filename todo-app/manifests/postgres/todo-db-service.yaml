@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-db-svc
+  namespace: project
+  labels:
+    app: todo-db
+spec:
+  clusterIP: None
+  selector:
+    app: todo-db
+  ports:
+    - port: 5432
+      protocol: TCP
+      targetPort: 5432
+      name: postgres

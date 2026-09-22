@@ -17,6 +17,11 @@ spec:
         - name: todo-backend
           image: todo-backend
           imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: todo-db-config
+            - secretRef:
+                name: todo-db-secret
           env:
             - name: PORT
               value: "3000"

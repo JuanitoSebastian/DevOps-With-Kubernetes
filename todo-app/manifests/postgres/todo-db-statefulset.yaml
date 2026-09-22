@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: todo-db-ss
+  namespace: project
+spec:
+  serviceName: todo-db-svc
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-db
+  template:
+    metadata:
+      labels:
+        app: todo-db
+    spec:
+      containers:
+        - name: todo-db
+          image: postgres:18
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: todo-db-secret
+            - configMapRef:
+                name: todo-db-config
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 100Mi
