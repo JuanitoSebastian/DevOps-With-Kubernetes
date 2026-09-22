@@ -43,9 +43,14 @@ const todosApp = new Hono()
   })
   .post("/todos", async (c) => {
     const body = await c.req.json();
+    console.info(`Incoming todo: ${JSON.stringify(body)}`);
     const text = typeof body?.text === "string" ? body.text.trim() : "";
     if (!text) {
       return c.json({ error: "text is required" }, 400);
+    }
+    if (text.length > 140) {
+      console.error(`Todo is too long (${text.length} chars, max 140): ${text}`);
+      return c.json({ error: "text must be at most 140 characters" }, 400);
     }
     const [todo] = await db`
       INSERT INTO todos (title) VALUES (${text})

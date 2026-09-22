@@ -67,3 +67,20 @@ sops --decrypt manifests/postgres/todo-db-secret.enc.yaml | kubectl apply -f -
 ```
 
 `key.txt` is the private age keypair and is gitignored — do not commit it.
+
+## Monitoring
+
+The monitoring stack (Prometheus, Loki, Alloy, Grafana) is configured in [`manifests/monitoring/`](./manifests/monitoring/).
+
+To install or update the monitoring stack:
+
+```bash
+./setup-monitoring.sh
+```
+
+To access Grafana:
+
+```bash
+kubectl port-forward --namespace monitoring svc/grafana 3000:80
+# Open http://localhost:3000 (User: admin / Password: admin)
+```
