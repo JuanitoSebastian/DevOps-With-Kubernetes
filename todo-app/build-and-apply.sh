@@ -6,9 +6,10 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "==> Building images"
 docker build -t todo-frontend "$DIR/front"
 docker build -t todo-backend "$DIR/back"
+docker build -t create-wiki-todo-job "$DIR/jobs/CreateWikiTodoJob"
 
 echo "==> Importing images into k3d cluster"
-k3d image import todo-frontend:latest todo-backend:latest
+k3d image import todo-frontend:latest todo-backend:latest create-wiki-todo-job:latest
 
 echo "==> Applying manifests"
 kubectl apply -f "$DIR/manifests/ingress.yaml"
@@ -18,6 +19,7 @@ kubectl apply -f "$DIR/manifests/todo-backend-deployment.yaml"
 kubectl apply -f "$DIR/manifests/todo-backend-service.yaml"
 kubectl apply -f "$DIR/manifests/todo-frontend-deployment.yaml"
 kubectl apply -f "$DIR/manifests/todo-frontend-service.yaml"
+kubectl apply -f "$DIR/manifests/create-wiki-todo-cronjob.yaml"
 
 echo "==> Applying database manifests"
 kubectl apply -f "$DIR/manifests/postgres/todo-db-configmap.yaml"
