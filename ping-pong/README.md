@@ -62,3 +62,37 @@ curl http://<EXTERNAL-IP>/pings   # -> total count
 ```
 
 Port mapping: LB `80` -> container `3000` (Layer 4 TCP forwarding).
+
+## GKE Exposed via Ingress (Exercise 3.2)
+
+Expose ping-pong together with log-output through a single GKE Ingress. Ping-pong answers from `/pingpong`; GKE also health-checks each backend on `/`, which the app answers with `200` (pong).
+
+### Apply together with log-output (all in namespace `exercises`)
+
+ping-pong side:
+```bash
+kubectl apply -f manifests-gke/postgres/postgres-service.yaml \
+              -f manifests-gke/postgres/postgres-statefulset.yaml \
+              -f manifests-gke/ping-pong-deployment.yaml \
+              -f manifests-gke/ping-pong-nodeport-service.yaml
+```
+
+log-output side (see `log_output/README.md`): configmap, PVC, deployment, NodePort service, then the shared Ingress below.
+
+### Ingress manifest (identical copy in both apps)
+```bash
+kubectl apply -f manifests-gke/ingress.yaml
+```
+
+### Get the external IP
+```bash
+kubectl get ing log-output-ingress   # watch until an IP is provisioned
+```
+
+### Test
+```bash
+curl http://<INGRESS-IP>/pingpong   # -> pong 1, pong 2, ...
+curl http://<INGRESS-IP>/           # -> log-output page
+```
+
+GKE Ingress backends must be `type: NodePort` services. The health check hits `/` on both backends and expects HTTP 200.

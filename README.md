@@ -32,4 +32,5 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**2.9**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/2.9/todo-app) | The project, step 12 | Completed |
 | [**2.10**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/2.10/todo-app) | The project, step 13 | Completed |
 | [**3.1**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.1/ping-pong) | Pingpong GKE | Completed |
+| [**3.2**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.2) | Back to Ingress | Completed |
 <!-- Add future exercise links below as releases are created -->

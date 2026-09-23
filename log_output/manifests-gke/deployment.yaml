@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-output-dep
+  namespace: exercises
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-output
+  template:
+    metadata:
+      labels:
+        app: log-output
+    spec:
+      volumes:
+        - name: shared-logs
+          persistentVolumeClaim:
+            claimName: log-pingpong-claim
+        - name: config
+          configMap:
+            name: log-output-config
+            items:
+              - key: information.txt
+                path: information.txt
+      containers:
+        - name: log-writer
+          image: gcr.io/dwk-gke-509503/log-output-writer
+          volumeMounts:
+            - name: shared-logs
+              mountPath: /usr/src/app/files
+        - name: log-responder
+          image: gcr.io/dwk-gke-509503/log-output-responder
+          env:
+            - name: PINGPONG_URL
+              value: "http://ping-pong-svc:80/pings"
+            - name: MESSAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: log-output-config
+                  key: MESSAGE
+          volumeMounts:
+            - name: shared-logs
+              mountPath: /usr/src/app/files
+            - name: config
+              mountPath: /usr/src/app/config
+              readOnly: true
