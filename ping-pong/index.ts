@@ -39,7 +39,6 @@ const handlePings = async (c: Context) => {
   return c.text(`${row ? row.count : 0}`);
 };
 
-app.get("/pingpong", handlePingPong);
 app.get("/pings", handlePings);
 app.get("/", handlePingPong);
 

@@ -65,7 +65,7 @@ Port mapping: LB `80` -> container `3000` (Layer 4 TCP forwarding).
 
 ## GKE via Gateway API (Exercises 3.2-3.3)
 
-Ping-pong and log-output share a single Gateway API routing setup in namespace `exercises`. Ping-pong answers from `/pingpong`; GKE health-checks each backend on `/`, which the app answers with 200.
+Ping-pong and log-output share a single Gateway API routing setup in namespace `exercises`. Ping-pong serves from `/`; the `HTTPRoute` matches external `/pingpong` and rewrites the prefix to `/` via a `URLRewrite` filter (`ReplacePrefixMatch`). GKE health-checks each backend on `/`, which the app answers with 200.
 
 ### Apply together with log-output
 
