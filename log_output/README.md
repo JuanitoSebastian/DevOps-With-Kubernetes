@@ -9,7 +9,7 @@ kubectl apply -f manifests/
 
 ## GKE Deployment
 
-Deploy log-output to Google Kubernetes Engine as an Ingress backend (alongside ping-pong).
+Deploy log-output to Google Kubernetes Engine behind the Gateway API (alongside ping-pong).
 
 ### 1. Push images to Google Artifact Registry
 ```bash
@@ -23,29 +23,30 @@ docker push gcr.io/<PROJECT-ID>/log-output-responder gcr.io/<PROJECT-ID>/log-out
 
 Default manifests reference `gcr.io/dwk-gke-509503/...`; adjust if your project differs.
 
+Requires Gateway API on the cluster:
+```bash
+gcloud container clusters update dwk-cluster --location=europe-north1-b --gateway-api=standard
+```
+
 ### 2. Apply manifests (namespace `exercises`)
 ```bash
 kubectl create namespace exercises
-kubectl apply -f manifests-gke/configmap.yaml \
-              -f manifests-gke/pvc.yaml \
-              -f manifests-gke/deployment.yaml \
-              -f manifests-gke/service.yaml
+kubectl apply -f manifests-gke/
 ```
 
-The PVC omits `storageClassName`, so GKE auto-provisions a Google Persistent Disk.
+Applies configmap, PVC, deployment, `ClusterIP` service, and the shared `Gateway` (`app-gateway`) + `HTTPRoute` (`app-route`) manifests.
 
-> ping-pong side (postgres + deployment + NodePort service) must be deployed first so `PINGPONG_URL` (`http://ping-pong-svc:80/pings`) resolves — see `ping-pong/README.md`.
+> ping-pong side (postgres + deployment + `ClusterIP` service) must be deployed first so `PINGPONG_URL` (`http://ping-pong-svc:80/pings`) resolves — see `ping-pong/README.md`.
 
-### 3. Apply shared Ingress
+### 3. Get the Gateway external IP
 ```bash
-kubectl apply -f manifests-gke/ingress.yaml
-kubectl get ing log-output-ingress   # watch until an external IP is provisioned
+kubectl get gateway app-gateway -n exercises   # watch ADDRESS column
 ```
 
 ### 4. Test
 ```bash
-curl http://<INGRESS-IP>/           # -> log-output page
-curl http://<INGRESS-IP>/pingpong   # -> pong N (routed to ping-pong)
+curl http://<GATEWAY-IP>/           # -> log-output page
+curl http://<GATEWAY-IP>/pingpong   # -> pong N (routed to ping-pong)
 ```
 
-GKE probes every Ingress backend on `/` expecting HTTP 200; log-output answers on `/`, so the health check passes.
+`app-route` routes `/` -> `log-output-svc` and `/pingpong` -> `ping-pong-svc` (both `ClusterIP`). GKE health-checks each backend on `/` expecting HTTP 200.

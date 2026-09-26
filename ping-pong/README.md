@@ -63,36 +63,37 @@ curl http://<EXTERNAL-IP>/pings   # -> total count
 
 Port mapping: LB `80` -> container `3000` (Layer 4 TCP forwarding).
 
-## GKE Exposed via Ingress (Exercise 3.2)
+## GKE via Gateway API (Exercises 3.2-3.3)
 
-Expose ping-pong together with log-output through a single GKE Ingress. Ping-pong answers from `/pingpong`; GKE also health-checks each backend on `/`, which the app answers with `200` (pong).
+Ping-pong and log-output share a single Gateway API routing setup in namespace `exercises`. Ping-pong answers from `/pingpong`; GKE health-checks each backend on `/`, which the app answers with 200.
 
-### Apply together with log-output (all in namespace `exercises`)
+### Apply together with log-output
+
+Requires Gateway API:
+```bash
+gcloud container clusters update dwk-cluster --location=europe-north1-b --gateway-api=standard
+```
 
 ping-pong side:
 ```bash
+kubectl create namespace exercises
 kubectl apply -f manifests-gke/postgres/postgres-service.yaml \
               -f manifests-gke/postgres/postgres-statefulset.yaml \
               -f manifests-gke/ping-pong-deployment.yaml \
-              -f manifests-gke/ping-pong-nodeport-service.yaml
+              -f manifests-gke/ping-pong-service.yaml
 ```
 
-log-output side (see `log_output/README.md`): configmap, PVC, deployment, NodePort service, then the shared Ingress below.
-
-### Ingress manifest (identical copy in both apps)
-```bash
-kubectl apply -f manifests-gke/ingress.yaml
-```
+log-output side (see `log_output/README.md`): configmap, PVC, deployment, `ClusterIP` service, and the shared `Gateway` + `HTTPRoute` manifests.
 
 ### Get the external IP
 ```bash
-kubectl get ing log-output-ingress   # watch until an IP is provisioned
+kubectl get gateway app-gateway -n exercises   # watch ADDRESS column
 ```
 
 ### Test
 ```bash
-curl http://<INGRESS-IP>/pingpong   # -> pong 1, pong 2, ...
-curl http://<INGRESS-IP>/           # -> log-output page
+curl http://<GATEWAY-IP>/pingpong   # -> pong 1, pong 2, ...
+curl http://<GATEWAY-IP>/           # -> log-output page
 ```
 
-GKE Ingress backends must be `type: NodePort` services. The health check hits `/` on both backends and expects HTTP 200.
+Backends are `ClusterIP` services; the `HTTPRoute` (`app-route`) lives in `log_output/manifests-gke/`. GKE expects HTTP 200 on `/` for both backends.
