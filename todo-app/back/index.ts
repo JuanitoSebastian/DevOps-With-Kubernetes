@@ -62,6 +62,8 @@ const todosApp = new Hono()
 app.route("/", todosApp);
 app.route("/api", todosApp);
 
+app.get("/", (c) => c.text("TODO backend is running"));
+
 const port = config.port;
 
 console.log(`Server started on port ${port}`);

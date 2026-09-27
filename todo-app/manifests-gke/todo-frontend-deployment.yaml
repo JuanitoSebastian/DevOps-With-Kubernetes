@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-frontend-dep
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: todo-frontend
+  template:
+    metadata:
+      labels:
+        app: todo-frontend
+    spec:
+      volumes:
+        - name: header-image
+          persistentVolumeClaim:
+            claimName: todo-image-claim
+      containers:
+        - name: todo-frontend
+          image: gcr.io/dwk-gke-509503/todo-frontend
+          env:
+            - name: PORT
+              value: "3001"
+            - name: TODO_BACKEND_URL
+              value: http://todo-backend-svc:2345
+            - name: HEADER_IMAGE_DIR
+              value: /usr/src/todo-frontend/header-image
+            - name: IMAGE_MAX_AGE_MINUTES
+              value: "10"
+            - name: HEADER_IMAGE_URL
+              value: https://picsum.photos/1200
+          volumeMounts:
+            - name: header-image
+              mountPath: /usr/src/todo-frontend/header-image

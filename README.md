@@ -35,4 +35,5 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**3.2**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.2) | Back to Ingress | Completed |
 | [**3.3**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.3) | To the Gateway | Completed |
 | [**3.4**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.4) | Rewritten routing | Completed |
+| [**3.5**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.5/todo-app) | The project, step 14 | Completed |
 <!-- Add future exercise links below as releases are created -->

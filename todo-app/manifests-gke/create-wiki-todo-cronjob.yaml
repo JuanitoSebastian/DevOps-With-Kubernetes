@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: create-wiki-todo
+spec:
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          containers:
+            - name: create-wiki-todo
+              image: gcr.io/dwk-gke-509503/create-wiki-todo-job
+              envFrom:
+                - configMapRef:
+                    name: todo-db-config
+                - secretRef:
+                    name: todo-db-secret
+          restartPolicy: Never

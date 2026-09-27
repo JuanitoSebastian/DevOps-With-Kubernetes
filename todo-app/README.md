@@ -68,6 +68,49 @@ sops --decrypt manifests/postgres/todo-db-secret.enc.yaml | kubectl apply -f -
 
 `key.txt` is the private age keypair and is gitignored — do not commit it.
 
+## GKE Deployment (Exercise 3.5)
+
+Deploy the todo-app to Google Kubernetes Engine using Kustomize.
+
+### Prerequisites
+
+- `gcloud` authenticated (`gcloud auth login`) with the target project set.
+- A cluster exists — create with [`../gke-scripts/start_cluster.sh`](../gke-scripts/start_cluster.sh).
+- Gateway API enabled on the cluster — [`../gke-scripts/enable_gatewayapi.sh`](../gke-scripts/enable_gatewayapi.sh).
+
+### Deploy
+
+```bash
+./deploy-gke.sh
+```
+
+The script builds the three images, tags and pushes them to Google Container Registry (`gcr.io/dwk-gke-509503/*`), fetches the GKE cluster credentials (`dwk-cluster` in `europe-north1-b`), applies the database secret (decrypted via sops + age), and applies all resources via Kustomize:
+
+```bash
+kubectl apply -k manifests-gke/
+# or preview without applying:
+kubectl kustomize manifests-gke/
+```
+
+The GKE manifests (`manifests-gke/`) are copies of `manifests/` adjusted for GKE — the k3d `manifests/` folder is left untouched. Differences:
+
+- Images reference `gcr.io/dwk-gke-509503/<image>` — update the project ID if yours differs (or set `GKE_PROJECT` when running the script).
+- No manual `PersistentVolume` (`pv.yaml`) — GKE auto-provisions storage from the `PersistentVolumeClaim` (`standard-rwo` for postgres).
+- The frontend Deployment uses `strategy: Recreate` (its PVC is `ReadWriteOnce`).
+- Routing uses the **Gateway API** (`todo-app-gateway` Gateway + `todo-app-route` HTTPRoute) instead of Ingress.
+
+The SOPS-encrypted secret stays out of Kustomize (plain `kustomize build` cannot decrypt it); `deploy-gke.sh` applies it via `sops --decrypt … | kubectl apply -f -` as in the k3d flow.
+
+### Exposing the app
+
+The Gateway provisions a cloud load balancer. Get its external IP:
+
+```bash
+kubectl get gateway todo-app-gateway -n project
+curl http://<EXTERNAL-IP>/          # frontend
+curl http://<EXTERNAL-IP>/api/todos # backend
+```
+
 ## Monitoring
 
 The monitoring stack (Prometheus, Loki, Alloy, Grafana) is configured in [`manifests/monitoring/`](./manifests/monitoring/).
