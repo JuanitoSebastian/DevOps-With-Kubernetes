@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 PROJECT_ID="${GKE_PROJECT:-dwk-gke-509503}"
 CLUSTER="${GKE_CLUSTER:-dwk-cluster}"

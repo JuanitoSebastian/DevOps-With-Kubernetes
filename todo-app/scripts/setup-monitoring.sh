@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 MON_DIR="$DIR/manifests/monitoring"
 
 echo "==> Adding Helm repositories"

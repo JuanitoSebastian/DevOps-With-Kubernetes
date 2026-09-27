@@ -26,10 +26,10 @@ All project resources live in the `project` namespace. The database is a **State
 
 A **CronJob** (`create-wiki-todo`, schedule `0 * * * *`) runs every hour and inserts a new todo `Read <URL>` where `<URL>` is a random Wikipedia article (fetched via `en.wikipedia.org/wiki/Special:Random`). It gets its database credentials from the same ConfigMap/Secret.
 
-The `./build-and-apply.sh` script builds both images, imports them into k3d, applies the manifests (decrypting the secret via sops), and rolls the deployments:
+The `./scripts/build-and-apply.sh` script builds both images, imports them into k3d, applies the manifests (decrypting the secret via sops), and rolls the deployments:
 
 ```bash
-./build-and-apply.sh
+./scripts/build-and-apply.sh
 ```
 
 Useful commands:
@@ -81,7 +81,7 @@ Deploy the todo-app to Google Kubernetes Engine using Kustomize.
 ### Deploy
 
 ```bash
-./deploy-gke.sh
+./scripts/deploy-gke.sh
 ```
 
 The script builds the three images, tags and pushes them to Google Container Registry (`gcr.io/dwk-gke-509503/*`), fetches the GKE cluster credentials (`dwk-cluster` in `europe-north1-b`), applies the database secret (decrypted via sops + age), and applies all resources via Kustomize:
@@ -99,7 +99,7 @@ The GKE manifests (`manifests-gke/`) are copies of `manifests/` adjusted for GKE
 - The frontend Deployment uses `strategy: Recreate` (its PVC is `ReadWriteOnce`).
 - Routing uses the **Gateway API** (`todo-app-gateway` Gateway + `todo-app-route` HTTPRoute) instead of Ingress.
 
-The SOPS-encrypted secret stays out of Kustomize (plain `kustomize build` cannot decrypt it); `deploy-gke.sh` applies it via `sops --decrypt … | kubectl apply -f -` as in the k3d flow.
+The SOPS-encrypted secret stays out of Kustomize (plain `kustomize build` cannot decrypt it); `scripts/deploy-gke.sh` applies it via `sops --decrypt … | kubectl apply -f -` as in the k3d flow.
 
 ### Exposing the app
 
@@ -111,6 +111,31 @@ curl http://<EXTERNAL-IP>/          # frontend
 curl http://<EXTERNAL-IP>/api/todos # backend
 ```
 
+## Automatic deployment (Exercise 3.6)
+
+Pushes to `main` deploy the project automatically via GitHub Actions ([`.github/workflows/main.yaml`](../.github/workflows/main.yaml)):
+
+1. **Authenticate** to GCP with Workload Identity Federation (keyless OIDC, no service-account keys).
+2. **Build** the three images (`todo-frontend`, `todo-backend`, `create-wiki-todo-job`) tagged `europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/<image>:main-<sha>`.
+3. **Push** them to Artifact Registry (`my-repository` in `europe-north1`).
+4. **Deploy** with Kustomize: `kustomize edit set image …` rewrites the `gcr.io/dwk-gke-509503/*` image references to the freshly pushed tags, then `kustomize build . | kubectl apply -f -`, followed by `kubectl rollout status` for `todo-backend-dep` and `todo-frontend-dep`.
+
+### One-time GCP setup
+
+Run [`./scripts/setup-gcp-github-actions.sh`](./scripts/setup-gcp-github-actions.sh):
+
+```bash
+./scripts/setup-gcp-github-actions.sh
+```
+
+### GitHub secrets
+
+| Secret | Description |
+| :--- | :--- |
+| `GKE_PROJECT` | GCP project ID |
+| `SERVICE_ACCOUNT` | Service account email used by GitHub Actions |
+| `WORKLOAD_IDENTITY_PROVIDER` | Full Workload Identity Provider resource name |
+
 ## Monitoring
 
 The monitoring stack (Prometheus, Loki, Alloy, Grafana) is configured in [`manifests/monitoring/`](./manifests/monitoring/).
@@ -118,7 +143,7 @@ The monitoring stack (Prometheus, Loki, Alloy, Grafana) is configured in [`manif
 To install or update the monitoring stack:
 
 ```bash
-./setup-monitoring.sh
+./scripts/setup-monitoring.sh
 ```
 
 To access Grafana:
