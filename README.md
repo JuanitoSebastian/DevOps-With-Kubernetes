@@ -39,4 +39,18 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**3.6**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.6/todo-app) | The project, step 15 | Completed |
 | [**3.7**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.7) | The project, step 16 | Completed |
 | [**3.8**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.8) | The project, step 17 | Completed |
+| [**3.9**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.9) | 3.9. DBaaS vs DIY | Completed |
 <!-- Add future exercise links below as releases are created -->
+
+---
+
+## Cloud SQL vs. PostgreSQL on GKE
+
+| Area | Cloud SQL for PostgreSQL | PostgreSQL on GKE + PVC |
+| :--- | :--- | :--- |
+| **Setup** | Fast to start. Main work is networking and IAM. | More upfront work: StatefulSet, PVC, HA, and backups are all on you. |
+| **Operations** | Google handles patching, failover, and monitoring. Less control. | Full control over version and config. You own upgrades and on-call. |
+| **Storage** | Managed storage with easy expansion. | You choose disk type and StorageClass. Zonal by default. |
+| **Backups** | Built-in automated backups and point-in-time recovery. | You set up and test backups yourself (e.g. WAL archiving, snapshots). |
+| **Cost** | Higher infra bill, lower ops effort. | Cheaper raw disks, but engineering and on-call time costs more. |
+| **Portability** | Tied to Google APIs, IAM, and networking. | More portable at the Postgres/K8s level. |
