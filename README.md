@@ -38,4 +38,5 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**3.5**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.5/todo-app) | The project, step 14 | Completed |
 | [**3.6**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.6/todo-app) | The project, step 15 | Completed |
 | [**3.7**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.7) | The project, step 16 | Completed |
+| [**3.8**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.8) | The project, step 17 | Completed |
 <!-- Add future exercise links below as releases are created -->
