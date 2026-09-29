@@ -58,6 +58,20 @@ jobs:
             echo "NAMESPACE=$BRANCH" >> $GITHUB_ENV
           fi
 
+      - name: Create namespace
+        run: kubectl create namespace $NAMESPACE || true
+
+      - name: Set up SOPS
+        uses: nhedger/setup-sops@v3
+        with:
+          version: "3.10.2"
+
+      - name: Apply database secret
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        run: |-
+          sops --decrypt todo-app/manifests/postgres/todo-db-secret.enc.yaml | sed "s/namespace: project$/namespace: $NAMESPACE/" | kubectl apply -n "$NAMESPACE" -f -
+
       - name: Build
         run: |-
           docker build --tag $FRONTEND_TAG todo-app/front
@@ -75,7 +89,6 @@ jobs:
 
       - name: Deploy
         run: |-
-          kubectl create namespace $NAMESPACE || true
           kubectl config set-context --current --namespace=$NAMESPACE
           cd todo-app/manifests-gke
           kustomize edit set namespace $NAMESPACE
@@ -83,6 +96,6 @@ jobs:
           kustomize edit set image gcr.io/$PROJECT_ID/todo-backend=$BACKEND_TAG
           kustomize edit set image gcr.io/$PROJECT_ID/create-wiki-todo-job=$JOB_TAG
           kustomize build . | kubectl apply -f -
-          kubectl rollout status deployment/todo-backend-dep
-          kubectl rollout status deployment/todo-frontend-dep
+          kubectl rollout status deployment/todo-backend-dep --timeout=5m
+          kubectl rollout status deployment/todo-frontend-dep --timeout=5m
           kubectl get services -o wide
