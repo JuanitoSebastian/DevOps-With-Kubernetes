@@ -138,6 +138,48 @@ Run [`./scripts/setup-gcp-github-actions.sh`](./scripts/setup-gcp-github-actions
 
 ## Monitoring
 
+## Database backups (Exercise 3.10)
+
+A **CronJob** (`todo-db-backup`, schedule `0 0 * * *`, GKE-only in
+[`manifests-gke/postgres/todo-db-backup-cronjob.yaml`](./manifests-gke/postgres/todo-db-backup-cronjob.yaml))
+dumps the `todos` database with `pg_dump` once per 24 hours and uploads
+`backup-YYYY-MM-DD.sql` to the GCS bucket `juanito-dwk-todo-backups`.
+The job runs the `google/cloud-sdk:alpine` image, installs
+`postgresql-client` via apk, and authenticates with `gcloud auth
+activate-service-account` using a GCP service-account key mounted from
+the `storage-sa-key` Secret at `/etc/secrets/key.json`. DB credentials
+come from the same `todo-db-config` ConfigMap / `todo-db-secret` Secret
+as the rest of the app.
+
+One-time setup (GCP service account + key, then the in-cluster secret —
+never commit the key to GitHub):
+
+```bash
+gcloud storage buckets create gs://juanito-dwk-todo-backups --location=europe-north1
+gcloud iam service-accounts create "todo-backup-sa" --display-name="Todo DB Backup SA"
+gcloud projects add-iam-policy-binding <PROJECT_ID> --role="roles/storage.objectCreator" \
+  --member="serviceAccount:todo-backup-sa@<PROJECT_ID>.iam.gserviceaccount.com"
+gcloud projects add-iam-policy-binding <PROJECT_ID> --role="roles/storage.objectViewer" \
+  --member="serviceAccount:todo-backup-sa@<PROJECT_ID>.iam.gserviceaccount.com"
+gcloud iam service-accounts keys create /tmp/key.json \
+  --iam-account=todo-backup-sa@<PROJECT_ID>.iam.gserviceaccount.com
+kubectl create secret generic storage-sa-key --from-file=key.json=/tmp/key.json -n project
+rm /tmp/key.json
+```
+
+Useful commands:
+
+```bash
+kubectl get cronjob todo-db-backup -n project
+kubectl create job --from=cronjob/todo-db-backup backup-manual-1 -n project  # run now
+kubectl logs job/backup-manual-1 -n project
+gcloud storage ls -l gs://juanito-dwk-todo-backups/  # verify the backup landed
+```
+
+Note: the secret is created from the command line (per the exercise) and
+is therefore not part of the GitHub Actions deployment — it must exist in
+the `project` namespace for the backup pods to start.
+
 The monitoring stack (Prometheus, Loki, Alloy, Grafana) is configured in [`manifests/monitoring/`](./manifests/monitoring/).
 
 To install or update the monitoring stack:
