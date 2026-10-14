@@ -44,6 +44,22 @@ app.get("/", async (c) => {
   );
 });
 
+app.get("/healthz", async (c) => {
+  try {
+    const res = await fetch(pingPongServiceUrl, {
+      signal: AbortSignal.timeout(2000),
+    });
+    if (res.ok) {
+      return c.text("ok");
+    }
+    console.log(`Health check failed, ping-pong returned status: ${res.status}`);
+    return c.text("ping-pong unreachable", 500);
+  } catch (e) {
+    console.error("Health check failed, error fetching pongs:", e);
+    return c.text("ping-pong unreachable", 500);
+  }
+});
+
 const port = Number(process.env.PORT) || 3000;
 
 console.log(`Server started in port ${port}`);

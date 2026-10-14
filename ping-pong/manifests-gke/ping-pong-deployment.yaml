@@ -16,6 +16,12 @@ spec:
       containers:
         - name: ping-pong
           image: gcr.io/dwk-gke-509503/ping-pong
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
           env:
             - name: DATABASE_URL
               value: "postgres://postgres:example@postgres-svc:5432/postgres"

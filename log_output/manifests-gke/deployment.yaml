@@ -31,6 +31,12 @@ spec:
               mountPath: /usr/src/app/files
         - name: log-responder
           image: gcr.io/dwk-gke-509503/log-output-responder
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
           env:
             - name: PINGPONG_URL
               value: "http://ping-pong-svc:80/pings"
