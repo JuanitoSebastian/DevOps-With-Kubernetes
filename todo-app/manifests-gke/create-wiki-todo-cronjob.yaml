@@ -12,6 +12,13 @@ spec:
           containers:
             - name: create-wiki-todo
               image: gcr.io/dwk-gke-509503/create-wiki-todo-job
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
               envFrom:
                 - configMapRef:
                     name: todo-db-config

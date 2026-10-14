@@ -9,6 +9,13 @@ spec:
       containers:
         - name: todo-db-check
           image: postgres:18
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
           command: ["/bin/sh", "-c"]
           args:
             - >

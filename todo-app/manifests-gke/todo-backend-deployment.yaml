@@ -15,6 +15,13 @@ spec:
       containers:
         - name: todo-backend
           image: gcr.io/dwk-gke-509503/todo-backend
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
           envFrom:
             - configMapRef:
                 name: todo-db-config

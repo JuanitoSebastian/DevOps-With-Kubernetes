@@ -15,6 +15,13 @@ spec:
           containers:
             - name: todo-db-backup
               image: google/cloud-sdk:alpine
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
               command:
                 - /bin/sh
                 - -c

@@ -21,6 +21,13 @@ spec:
       containers:
         - name: todo-frontend
           image: gcr.io/dwk-gke-509503/todo-frontend
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
           env:
             - name: PORT
               value: "3001"
