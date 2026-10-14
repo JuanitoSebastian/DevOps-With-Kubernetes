@@ -1,13 +1,18 @@
-import { Form } from "react-router";
+import { Form, redirect } from "react-router";
 import { CreateTodoForm } from "@/components/CreateTodoForm";
 import { TodoList } from "@/components/TodoList";
 import { Button } from "@/components/ui/button";
+import { checkHealth } from "../health.server";
 import { config } from "../config.server";
 import type { Route } from "./+types/landing";
 
 type Todo = { id: number; text: string };
 
 export async function loader(_args: Route.LoaderArgs) {
+  if (!checkHealth()) {
+    throw redirect("/break");
+  }
+
   let todos: Todo[] = [];
   try {
     const res = await fetch(`${config.todoBackendUrl}/todos`);
