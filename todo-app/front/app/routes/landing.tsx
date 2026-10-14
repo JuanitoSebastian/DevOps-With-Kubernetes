@@ -1,5 +1,7 @@
+import { Form } from "react-router";
 import { CreateTodoForm } from "@/components/CreateTodoForm";
 import { TodoList } from "@/components/TodoList";
+import { Button } from "@/components/ui/button";
 import { config } from "../config.server";
 import type { Route } from "./+types/landing";
 
@@ -29,6 +31,11 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
       <img src="/header-image" alt="Header" className="mx-auto mt-8 w-[400px] rounded-lg" />
       <CreateTodoForm />
       <TodoList todos={loaderData.todos} />
+      <Form method="post" action="/break" className="mx-auto mt-auto mb-8 pt-8">
+        <Button type="submit" variant="destructive">
+          Break the app
+        </Button>
+      </Form>
     </main>
   );
 }

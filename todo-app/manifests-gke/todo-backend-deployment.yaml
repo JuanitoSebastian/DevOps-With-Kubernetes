@@ -22,6 +22,18 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 5
           envFrom:
             - configMapRef:
                 name: todo-db-config

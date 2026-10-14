@@ -62,6 +62,17 @@ const todosApp = new Hono()
 app.route("/", todosApp);
 app.route("/api", todosApp);
 
+app.get("/healthz", async (c) => {
+  try {
+    await db`SELECT 1`;
+    return c.json({ status: "ok" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.log(`Health check failed, database unreachable: ${message}`);
+    return c.json({ status: "unhealthy" }, 500);
+  }
+});
+
 app.get("/", (c) => c.text("TODO backend is running"));
 
 const port = config.port;
