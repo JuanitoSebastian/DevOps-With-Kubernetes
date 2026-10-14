@@ -42,6 +42,7 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**3.9**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.9) | 3.9. DBaaS vs DIY | Completed |
 | [**3.10**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.10/todo-app) | The project, step 18 | Completed |
 | [**3.11**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/3.11/todo-app) | The project, step 19 | Completed |
+| [**3.12**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/main/docs/google-cloud-logs.png) | The project, step 20 | Completed |
 <!-- Add future exercise links below as releases are created -->
 
 ---
