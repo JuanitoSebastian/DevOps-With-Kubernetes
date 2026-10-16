@@ -12,7 +12,7 @@ resources:
 images:
 - name: PROJECT/RESPONDER
   newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/log-output-responder
-  newTag: ex-4.7-ceb5d91452475ba2769e2235d924aa2008ac8baf
+  newTag: ex-4.7-ea1854fbc33c48f929552d551c0fe6622d2c7b1c
 - name: PROJECT/WRITER
   newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/log-output-writer
-  newTag: ex-4.7-ceb5d91452475ba2769e2235d924aa2008ac8baf
+  newTag: ex-4.7-ea1854fbc33c48f929552d551c0fe6622d2c7b1c
