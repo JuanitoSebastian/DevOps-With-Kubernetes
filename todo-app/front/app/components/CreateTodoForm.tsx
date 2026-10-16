@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useRevalidator } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { createTodoSchema } from "@/lib/todos";
 
 export function CreateTodoForm() {
   const [text, setText] = useState("");
@@ -9,13 +10,13 @@ export function CreateTodoForm() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const trimmed = text.trim();
-    if (!trimmed) return;
+    const parsed = createTodoSchema.safeParse({ text });
+    if (!parsed.success) return;
 
     const res = await fetch("/api/todos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: trimmed }),
+      body: JSON.stringify(parsed.data),
     });
 
     if (res.ok) {
