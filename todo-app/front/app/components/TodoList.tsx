@@ -68,10 +68,11 @@ export function TodoList({ todos: initialTodos }: TodoListProps) {
   }
 
   return (
-    <ItemGroup className="mx-auto mt-8 w-[400px]">
+    <ItemGroup className="mx-auto mt-8 w-full max-w-xl px-4">
       {todos.map((todo) => (
-        <Item key={todo.id}>
+        <Item key={todo.id} className="items-start">
           <Checkbox
+            className="mt-1 shrink-0"
             checked={todo.completed}
             onCheckedChange={(value) =>
               handleCheckedChange(todo, value === true)
@@ -80,9 +81,10 @@ export function TodoList({ todos: initialTodos }: TodoListProps) {
               todo.completed ? "not completed" : "completed"
             }`}
           />
-          <ItemContent>
+          <ItemContent className="min-w-0 flex-1">
             <ItemTitle
               className={cn(
+                "w-full min-w-0 whitespace-normal [overflow-wrap:anywhere]",
                 todo.completed && "text-muted-foreground line-through",
               )}
             >

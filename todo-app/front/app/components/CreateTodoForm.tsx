@@ -26,7 +26,7 @@ export function CreateTodoForm() {
   }
 
   return (
-    <form className="mx-auto mt-4 flex w-[400px] gap-2" onSubmit={handleSubmit}>
+    <form className="mx-auto mt-4 flex w-full max-w-xl gap-2 px-4" onSubmit={handleSubmit}>
       <Input
         type="text"
         placeholder="New todo..."
