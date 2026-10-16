@@ -45,7 +45,12 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**3.12**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/main/docs/google-cloud-logs.png) | The project, step 20 | Completed |
 | [**4.1**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.1) | Readiness probe | Completed |
 | [**4.2**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.2/todo-app) | The project, step 21 | Completed |
+| [**4.3**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.3) | Prometheus | Completed |
 <!-- Add future exercise links below as releases are created -->
+
+### 4.3 Query
+
+`count(kube_pod_info{namespace="monitoring", created_by_kind="StatefulSet"})`
 
 ---
 
