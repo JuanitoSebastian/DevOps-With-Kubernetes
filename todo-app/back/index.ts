@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { SQL } from "bun";
 
 import { config } from "./config";
+import { createTodoSchema, todoIdSchema, updateTodoSchema } from "./todos";
 
 const app = new Hono();
 
@@ -35,7 +36,8 @@ await ensureTable();
 const todosApp = new Hono()
   .get("/todos", async (c) => {
     const rows = await db`
-      SELECT id, title AS text, created_at, completed_at
+      SELECT id, title AS text, created_at, completed_at,
+        (completed_at IS NOT NULL) AS completed
       FROM todos
       ORDER BY created_at DESC
     `;
@@ -44,19 +46,51 @@ const todosApp = new Hono()
   .post("/todos", async (c) => {
     const body = await c.req.json();
     console.info(`Incoming todo: ${JSON.stringify(body)}`);
-    const text = typeof body?.text === "string" ? body.text.trim() : "";
-    if (!text) {
-      return c.json({ error: "text is required" }, 400);
+    const parsed = createTodoSchema.safeParse(body);
+    if (!parsed.success) {
+      return c.json({ error: parsed.error.issues }, 400);
     }
-    if (text.length > 140) {
-      console.error(`Todo is too long (${text.length} chars, max 140): ${text}`);
-      return c.json({ error: "text must be at most 140 characters" }, 400);
-    }
+    const { text } = parsed.data;
     const [todo] = await db`
       INSERT INTO todos (title) VALUES (${text})
-      RETURNING id, title AS text, created_at, completed_at
+      RETURNING id, title AS text, created_at, completed_at,
+        (completed_at IS NOT NULL) AS completed
     `;
     return c.json(todo, 201);
+  })
+  .put("/todos/:id", async (c) => {
+    const id = c.req.param("id");
+    if (!todoIdSchema.safeParse(id).success) {
+      return c.json({ error: "invalid id" }, 400);
+    }
+    let completed: boolean;
+    try {
+      const body = await c.req.json();
+      const parsed = updateTodoSchema.safeParse(body);
+      if (!parsed.success) {
+        return c.json({ error: parsed.error.issues }, 400);
+      }
+      completed = parsed.data.completed;
+    } catch {
+      return c.json({ error: "completed is required" }, 400);
+    }
+    try {
+      const [todo] = await db`
+        UPDATE todos
+        SET completed_at = CASE WHEN ${completed} THEN now() ELSE NULL END
+        WHERE id = ${id}
+        RETURNING id, title AS text, created_at, completed_at,
+          (completed_at IS NOT NULL) AS completed
+      `;
+      if (!todo) {
+        return c.json({ error: "todo not found" }, 404);
+      }
+      return c.json(todo);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Failed to update todo ${id}: ${message}`);
+      return c.json({ error: "failed to update todo" }, 500);
+    }
   });
 
 app.route("/", todosApp);

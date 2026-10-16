@@ -4,9 +4,8 @@ import { TodoList } from "@/components/TodoList";
 import { Button } from "@/components/ui/button";
 import { checkHealth } from "../health.server";
 import { config } from "../config.server";
+import { todoSchema, type Todo } from "../lib/todos";
 import type { Route } from "./+types/landing";
-
-type Todo = { id: number; text: string };
 
 export async function loader(_args: Route.LoaderArgs) {
   if (!checkHealth()) {
@@ -17,7 +16,12 @@ export async function loader(_args: Route.LoaderArgs) {
   try {
     const res = await fetch(`${config.todoBackendUrl}/todos`);
     if (res.ok) {
-      todos = await res.json();
+      const parsed = todoSchema.array().safeParse(await res.json());
+      if (parsed.success) {
+        todos = parsed.data;
+      } else {
+        console.error("Invalid todos payload:", parsed.error.issues);
+      }
     }
   } catch (error) {
     console.error("Failed to fetch todos:", error);

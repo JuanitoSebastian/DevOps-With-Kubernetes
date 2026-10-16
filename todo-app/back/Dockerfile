@@ -6,6 +6,6 @@ COPY package.json bun.lock ./
 
 RUN bun install --frozen-lockfile
 
-COPY index.ts config.ts ./
+COPY index.ts config.ts todos.ts ./
 
 CMD ["bun", "run", "index.ts"]
