@@ -2,15 +2,17 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - configmap.yaml
-  - deployment.yaml
-  - service.yaml
-  - pvc.yaml
-  - gateway.yaml
-  - httproute.yaml
+- configmap.yaml
+- deployment.yaml
+- service.yaml
+- pvc.yaml
+- gateway.yaml
+- httproute.yaml
 
 images:
-  - name: PROJECT/WRITER
-    newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/log-output-writer
-  - name: PROJECT/RESPONDER
-    newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/log-output-responder
+- name: PROJECT/RESPONDER
+  newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/log-output-responder
+  newTag: ex-4.7-528aeeee9333995f0bc3c07562e40d7d0142a11a
+- name: PROJECT/WRITER
+  newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/log-output-writer
+  newTag: ex-4.7-528aeeee9333995f0bc3c07562e40d7d0142a11a
