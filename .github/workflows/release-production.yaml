@@ -6,6 +6,7 @@ on:
       - "*"
     paths:
       - "todo-app/**"
+      - ".github/workflows/release-production.yaml"
 
 permissions:
   contents: write
@@ -103,3 +104,5 @@ jobs:
         with:
           add: "todo-app/manifests-gke/overlays/production/kustomization.yaml"
           message: "New todo-app production version! ${{ github.ref_name }} ${{ github.sha }}"
+          # Tag pushes check out a detached HEAD, so push explicitly to main
+          push: "origin HEAD:main"
