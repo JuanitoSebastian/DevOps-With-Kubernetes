@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/JuanitoSebastian/DevOps-With-Kubernetes.git
-    targetRevision: ex-4.7
+    targetRevision: main
     path: log_output/manifests-gke
   destination:
     server: https://kubernetes.default.svc

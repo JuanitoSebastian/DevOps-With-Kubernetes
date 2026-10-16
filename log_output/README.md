@@ -18,7 +18,7 @@ Ping-pong dependency (one-time, out-of-band, NOT ArgoCD-managed — ping-pong ge
 # Required so PINGPONG_URL (http://ping-pong-svc:80/pings) resolves and /pingpong backend exists.
 ```
 
-Register the app (tracks `ex-4.7` during dev, switch `targetRevision` to `main` at merge):
+Register the app (tracks `main`):
 ```bash
 kubectl apply -n argocd -f log_output/argocd/application.yaml
 kubectl -n argocd get application log-output

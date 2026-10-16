@@ -49,6 +49,7 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**4.4**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.4/ping-pong) | Your canary | Completed |
 | [**4.5**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.5/todo-app) | The project, step 22 | Completed |
 | [**4.6**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.6/todo-app) | The project, step 23 | Completed |
+| [**4.7**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.7/log_output) | Baby steps to GitOps | Completed |
 <!-- Add future exercise links below as releases are created -->
 
 ### 4.3 Query
