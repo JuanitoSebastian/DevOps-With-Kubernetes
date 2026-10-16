@@ -32,18 +32,18 @@ docker push "gcr.io/$PROJECT_ID/broadcaster"
 echo "==> Getting GKE cluster credentials"
 gcloud container clusters get-credentials "$CLUSTER" --zone "$ZONE" --project "$PROJECT_ID"
 
-echo "==> Creating project namespace (if not exists)"
-kubectl create namespace project --dry-run=client -o yaml | kubectl apply -f -
+echo "==> Creating staging namespace (if not exists)"
+kubectl create namespace staging --dry-run=client -o yaml | kubectl apply -f -
 
 echo "==> Applying database secret (decrypted via sops + age)"
 export SOPS_AGE_KEY_FILE="$DIR/key.txt"
-sops --decrypt "$DIR/manifests/postgres/todo-db-secret.enc.yaml" | kubectl apply -n project -f -
+sops --decrypt "$DIR/manifests/postgres/todo-db-secret.enc.yaml" | kubectl apply -n staging -f -
 
 echo "==> Applying broadcaster telegram secret (decrypted via sops + age)"
-sops --decrypt "$DIR/manifests-gke/base/broadcaster-secret.enc.yaml" | kubectl apply -n project -f -
+sops --decrypt "$DIR/manifests-gke/base/broadcaster-secret.enc.yaml" | kubectl apply -n staging -f -
 
-echo "==> Deploying resources via Kustomize"
-kubectl apply -k "$DIR/manifests-gke"
+echo "==> Deploying staging resources via Kustomize"
+kubectl apply -k "$DIR/manifests-gke/overlays/staging"
 
 echo "==> Done. Watching pod status... (Ctrl-C to stop)"
-kubectl get pods -n project -w
+kubectl get pods -n staging -w
