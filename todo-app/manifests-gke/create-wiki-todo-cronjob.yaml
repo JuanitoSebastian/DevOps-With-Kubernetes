@@ -11,7 +11,7 @@ spec:
         spec:
           containers:
             - name: create-wiki-todo
-              image: gcr.io/dwk-gke-509503/create-wiki-todo-job
+              image: PROJECT/CREATE-WIKI-TODO-JOB
               resources:
                 requests:
                   cpu: 50m

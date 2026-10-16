@@ -117,14 +117,25 @@ curl http://<EXTERNAL-IP>/api/todos # backend
 
 Async Telegram notifications via NATS. Flow: `todo-backend --publish (todos)--> NATS --queue subscribe--> broadcaster (x6) --sendMessage--> Telegram`. Requires NATS on the cluster ([`../gke-scripts/install_nats.sh`](../gke-scripts/install_nats.sh)).
 
-## Automatic deployment (Exercise 3.6)
+## Automatic deployment (Exercise 3.6, GitOps since Exercise 4.8)
 
-Pushes to `main` deploy the project automatically via GitHub Actions ([`.github/workflows/main.yaml`](../.github/workflows/main.yaml)):
+Pushes to `main` deploy the project automatically via pull-based GitOps (same pattern as `log_output` Exercise 4.7). GitHub Actions ([`.github/workflows/main.yaml`](../.github/workflows/main.yaml)) never runs `kubectl apply` for the app — ArgoCD does:
 
 1. **Authenticate** to GCP with Workload Identity Federation (keyless OIDC, no service-account keys).
 2. **Build** the four images (`todo-frontend`, `todo-backend`, `create-wiki-todo-job`, `broadcaster`) tagged `europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/<image>:main-<sha>`.
 3. **Push** them to Artifact Registry (`my-repository` in `europe-north1`).
-4. **Deploy** with Kustomize: `kustomize edit set image …` rewrites the `gcr.io/dwk-gke-509503/*` image references to the freshly pushed tags, then `kustomize build . | kubectl apply -f -`, followed by `kubectl rollout status` for `todo-backend-dep` and `todo-frontend-dep`.
+4. **Apply secrets outside ArgoCD** (ArgoCD cannot decrypt SOPS): `sops --decrypt … | kubectl apply -n project -f -` for `todo-db-secret` and `broadcaster-telegram-secret`. The `.enc.yaml` files stay out of `manifests-gke/kustomization.yaml` on purpose.
+5. **Update manifests**: `kustomize edit set image PROJECT/…=$TAG` rewrites the `PROJECT/TODO-FRONTEND`, `PROJECT/TODO-BACKEND`, `PROJECT/BROADCASTER`, `PROJECT/CREATE-WIKI-TODO-JOB` placeholders in `manifests-gke/`, then commits `kustomization.yaml` back.
+6. **ArgoCD syncs** `main:todo-app/manifests-gke` into namespace `project` (`prune:true, selfHeal:true`, ~3min poll, see [`argocd/application.yaml`](./argocd/application.yaml)).
+
+Register the app once (ArgoCD already installed from Exercise 4.7):
+
+```bash
+kubectl config use-context gke_dwk-gke-509503_europe-north1-b_dwk-cluster
+kubectl create namespace project || true
+kubectl apply -n argocd -f todo-app/argocd/application.yaml
+kubectl -n argocd get application todo-app
+```
 
 ### One-time GCP setup
 

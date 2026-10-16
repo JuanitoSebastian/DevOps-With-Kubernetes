@@ -3,13 +3,13 @@ name: Release Project
 on:
   push:
     branches:
-      - '**'
+      - main
     paths:
-      - 'todo-app/**'
-      - '.github/workflows/main.yaml'
+      - "todo-app/**"
+      - ".github/workflows/main.yaml"
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 env:
@@ -21,8 +21,8 @@ env:
   BRANCH: ${{ github.ref_name }}
 
 jobs:
-  build-publish-deploy:
-    name: Build, Publish and Deploy
+  build-publish-commit:
+    name: Build, Publish and Update Manifests
     runs-on: ubuntu-latest
     environment: GKE_PROJECT
 
@@ -42,47 +42,12 @@ jobs:
       - name: Configure Docker for Artifact Registry
         run: gcloud --quiet auth configure-docker $REGISTRY
 
-      - name: Get GKE Credentials
-        uses: google-github-actions/get-gke-credentials@v3
-        with:
-          cluster_name: "${{ env.GKE_CLUSTER }}"
-          project_id: "${{ env.PROJECT_ID }}"
-          location: "${{ env.GKE_ZONE }}"
-
       - name: Form the image names
         run: |-
           echo "FRONTEND_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/todo-frontend:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
           echo "BACKEND_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/todo-backend:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
           echo "JOB_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/create-wiki-todo-job:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
           echo "BROADCASTER_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/broadcaster:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
-
-      - name: Set namespace
-        run: |-
-          if [ "$BRANCH" = "main" ]; then
-            echo "NAMESPACE=project" >> $GITHUB_ENV
-          else
-            echo "NAMESPACE=$BRANCH" >> $GITHUB_ENV
-          fi
-
-      - name: Create namespace
-        run: kubectl create namespace $NAMESPACE || true
-
-      - name: Set up SOPS
-        uses: nhedger/setup-sops@v3
-        with:
-          version: "3.10.2"
-
-      - name: Apply database secret
-        env:
-          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-        run: |-
-          sops --decrypt todo-app/manifests/postgres/todo-db-secret.enc.yaml | sed "s/namespace: project$/namespace: $NAMESPACE/" | kubectl apply -n "$NAMESPACE" -f -
-
-      - name: Apply broadcaster telegram secret
-        env:
-          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-        run: |-
-          sops --decrypt todo-app/manifests-gke/broadcaster-secret.enc.yaml | sed "s/namespace: project$/namespace: $NAMESPACE/" | kubectl apply -n "$NAMESPACE" -f -
 
       - name: Build
         run: |-
@@ -98,20 +63,44 @@ jobs:
           docker push $JOB_TAG
           docker push $BROADCASTER_TAG
 
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@v3
+        with:
+          cluster_name: "${{ env.GKE_CLUSTER }}"
+          project_id: "${{ env.PROJECT_ID }}"
+          location: "${{ env.GKE_ZONE }}"
+
+      - name: Set up SOPS
+        uses: nhedger/setup-sops@v3
+        with:
+          version: "3.10.2"
+
+      - name: Apply database secret
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        run: |-
+          kubectl create namespace project || true
+          sops --decrypt todo-app/manifests/postgres/todo-db-secret.enc.yaml | kubectl apply -n project -f -
+
+      - name: Apply broadcaster telegram secret
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        run: |-
+          sops --decrypt todo-app/manifests-gke/broadcaster-secret.enc.yaml | kubectl apply -n project -f -
+
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v3
 
-      - name: Deploy
+      - name: Update image tags in kustomization
         run: |-
-          kubectl config set-context --current --namespace=$NAMESPACE
           cd todo-app/manifests-gke
-          kustomize edit set namespace $NAMESPACE
-          kustomize edit set image gcr.io/$PROJECT_ID/todo-frontend=$FRONTEND_TAG
-          kustomize edit set image gcr.io/$PROJECT_ID/todo-backend=$BACKEND_TAG
-          kustomize edit set image gcr.io/$PROJECT_ID/create-wiki-todo-job=$JOB_TAG
-          kustomize edit set image gcr.io/$PROJECT_ID/broadcaster=$BROADCASTER_TAG
-          kustomize build . | kubectl apply -f -
-          kubectl rollout status deployment/todo-backend-dep --timeout=5m
-          kubectl rollout status deployment/todo-frontend-dep --timeout=5m
-          kubectl rollout status deployment/broadcaster-dep --timeout=5m
-          kubectl get services -o wide
+          kustomize edit set image PROJECT/TODO-FRONTEND=$FRONTEND_TAG
+          kustomize edit set image PROJECT/TODO-BACKEND=$BACKEND_TAG
+          kustomize edit set image PROJECT/CREATE-WIKI-TODO-JOB=$JOB_TAG
+          kustomize edit set image PROJECT/BROADCASTER=$BROADCASTER_TAG
+
+      - name: Commit kustomization.yaml back to repo
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: "todo-app/manifests-gke/kustomization.yaml"
+          message: "New todo-app version! ${{ github.sha }}"

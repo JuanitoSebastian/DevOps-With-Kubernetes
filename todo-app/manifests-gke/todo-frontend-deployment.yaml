@@ -20,7 +20,7 @@ spec:
             claimName: todo-image-claim
       containers:
         - name: todo-frontend
-          image: gcr.io/dwk-gke-509503/todo-frontend
+          image: PROJECT/TODO-FRONTEND
           resources:
             requests:
               cpu: 100m

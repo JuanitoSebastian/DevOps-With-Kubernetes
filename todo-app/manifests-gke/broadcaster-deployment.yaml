@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: broadcaster
-          image: gcr.io/dwk-gke-509503/broadcaster
+          image: PROJECT/BROADCASTER
           resources:
             requests:
               cpu: 100m

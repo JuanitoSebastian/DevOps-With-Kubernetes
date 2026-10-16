@@ -19,3 +19,13 @@ resources:
   - pvc.yaml
   - gateway.yaml
   - httproute.yaml
+
+images:
+  - name: PROJECT/TODO-FRONTEND
+    newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/todo-frontend
+  - name: PROJECT/TODO-BACKEND
+    newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/todo-backend
+  - name: PROJECT/BROADCASTER
+    newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/broadcaster
+  - name: PROJECT/CREATE-WIKI-TODO-JOB
+    newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/create-wiki-todo-job

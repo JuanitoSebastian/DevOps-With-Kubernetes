@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: todo-backend
-          image: gcr.io/dwk-gke-509503/todo-backend
+          image: PROJECT/TODO-BACKEND
           resources:
             requests:
               cpu: 100m
