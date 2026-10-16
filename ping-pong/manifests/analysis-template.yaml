@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: cpu-usage
+  namespace: exercises
+spec:
+  metrics:
+    - name: cpu-usage
+      interval: 30s
+      count: 3
+      failureLimit: 2
+      # Set a low value (0.001) to force a fail and rollout abort
+      successCondition: result[0] <= 1
+      provider:
+        prometheus:
+          address: http://prom-prometheus-server.monitoring.svc.cluster.local:80
+          query: |
+            sum(rate(container_cpu_usage_seconds_total{namespace="exercises"}[5m]))

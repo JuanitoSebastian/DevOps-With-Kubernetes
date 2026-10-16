@@ -97,3 +97,7 @@ curl http://<GATEWAY-IP>/           # -> log-output page
 ```
 
 Backends are `ClusterIP` services; the `HTTPRoute` (`app-route`) lives in `log_output/manifests-gke/`. GKE expects HTTP 200 on `/` for both backends.
+
+## Canary with Argo Rollouts (Exercise 4.4, implemented in local k3d)
+
+`manifests/rollout.yaml` (Argo `Rollout`, replaces the plain `Deployment`) runs a canary (`setWeight 25` → analysis → `setWeight 50`) and `manifests/analysis-template.yaml` (`AnalysisTemplate/cpu-usage`) watches summed CPU rate for namespace `exercises`.
