@@ -5,6 +5,8 @@ metadata:
   namespace: exercises
 spec:
   replicas: 1
+  strategy:
+    type: Recreate # single replica + RWO volume: RollingUpdate deadlocks on volume attach, Recreate detaches first
   selector:
     matchLabels:
       app: log-output
