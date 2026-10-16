@@ -5,18 +5,18 @@ namespace: production
 
 resources:
 - ../../base
-- todo-db-backup-cronjob.yaml # production-only: DB backups run here, not in staging
+- todo-db-backup-cronjob.yaml
 
 images:
 - name: PROJECT/BROADCASTER
   newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/broadcaster
-  newTag: main-e5f36db22cd28ccbcb2c1c12198e019201a279c1
+  newTag: 4.9-75bc459ad617725be35246efadf2c9fbbb51ec7d
 - name: PROJECT/CREATE-WIKI-TODO-JOB
   newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/create-wiki-todo-job
-  newTag: main-e5f36db22cd28ccbcb2c1c12198e019201a279c1
+  newTag: 4.9-75bc459ad617725be35246efadf2c9fbbb51ec7d
 - name: PROJECT/TODO-BACKEND
   newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/todo-backend
-  newTag: main-e5f36db22cd28ccbcb2c1c12198e019201a279c1
+  newTag: 4.9-75bc459ad617725be35246efadf2c9fbbb51ec7d
 - name: PROJECT/TODO-FRONTEND
   newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/todo-frontend
-  newTag: main-e5f36db22cd28ccbcb2c1c12198e019201a279c1
+  newTag: 4.9-75bc459ad617725be35246efadf2c9fbbb51ec7d
