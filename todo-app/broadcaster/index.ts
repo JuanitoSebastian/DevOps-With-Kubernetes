@@ -51,6 +51,10 @@ async function run(nc: NatsConnection): Promise<void> {
       continue;
     }
     const text = formatMessage(parsed.data);
+    if (config.mode === "log-only") {
+      console.log(`LOG-ONLY (no forward): ${text}`);
+      continue;
+    }
     try {
       await sendTelegram(text);
       console.log(`Forwarded to Telegram: ${text}`);
@@ -62,6 +66,7 @@ async function run(nc: NatsConnection): Promise<void> {
 }
 
 const nc = await connect({ servers: config.nats.url });
+console.log(`Broadcaster mode: ${config.mode}`);
 console.log(`Connected to NATS at ${config.nats.url}`);
 
 const shutdown = async () => {

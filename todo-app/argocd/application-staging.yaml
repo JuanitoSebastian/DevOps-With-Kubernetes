@@ -1,17 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: todo-app
+  name: todo-app-staging
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/JuanitoSebastian/DevOps-With-Kubernetes.git
     targetRevision: main
-    path: todo-app/manifests-gke
+    path: todo-app/manifests-gke/overlays/staging
   destination:
     server: https://kubernetes.default.svc
-    namespace: project
+    namespace: staging
   syncPolicy:
     automated:
       prune: true

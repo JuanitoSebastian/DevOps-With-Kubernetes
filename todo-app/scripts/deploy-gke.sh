@@ -37,10 +37,10 @@ kubectl create namespace project --dry-run=client -o yaml | kubectl apply -f -
 
 echo "==> Applying database secret (decrypted via sops + age)"
 export SOPS_AGE_KEY_FILE="$DIR/key.txt"
-sops --decrypt "$DIR/manifests/postgres/todo-db-secret.enc.yaml" | kubectl apply -f -
+sops --decrypt "$DIR/manifests/postgres/todo-db-secret.enc.yaml" | kubectl apply -n project -f -
 
 echo "==> Applying broadcaster telegram secret (decrypted via sops + age)"
-sops --decrypt "$DIR/manifests-gke/broadcaster-secret.enc.yaml" | kubectl apply -f -
+sops --decrypt "$DIR/manifests-gke/base/broadcaster-secret.enc.yaml" | kubectl apply -n project -f -
 
 echo "==> Deploying resources via Kustomize"
 kubectl apply -k "$DIR/manifests-gke"

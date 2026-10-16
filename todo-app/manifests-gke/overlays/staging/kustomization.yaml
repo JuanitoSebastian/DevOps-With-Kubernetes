@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: staging
+
+resources:
+- ../../base
+
+patches:
+- path: broadcaster-patch.yaml
+
+images:
+- name: PROJECT/BROADCASTER
+  newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/broadcaster
+  newTag: main-d79f8959844d97497c153cee2987ddad02e0d273
+- name: PROJECT/CREATE-WIKI-TODO-JOB
+  newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/create-wiki-todo-job
+  newTag: main-d79f8959844d97497c153cee2987ddad02e0d273
+- name: PROJECT/TODO-BACKEND
+  newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/todo-backend
+  newTag: main-d79f8959844d97497c153cee2987ddad02e0d273
+- name: PROJECT/TODO-FRONTEND
+  newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/todo-frontend
+  newTag: main-d79f8959844d97497c153cee2987ddad02e0d273

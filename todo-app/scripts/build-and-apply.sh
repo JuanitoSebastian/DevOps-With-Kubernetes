@@ -30,7 +30,7 @@ kubectl apply -f "$DIR/manifests/postgres/db-check-job.yaml"
 
 echo "==> Applying database secret (decrypted via sops + age)"
 export SOPS_AGE_KEY_FILE="$DIR/key.txt"
-sops --decrypt "$DIR/manifests/postgres/todo-db-secret.enc.yaml" | kubectl apply -f -
+sops --decrypt "$DIR/manifests/postgres/todo-db-secret.enc.yaml" | kubectl apply -n project -f -
 
 echo "==> Rolling restart deployments"
 kubectl rollout restart -n project deployment/todo-frontend-dep deployment/todo-backend-dep

@@ -1,4 +1,4 @@
-name: Release Project
+name: Release Project - Staging
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "todo-app/**"
+      - "todo-app/manifests-gke/overlays/staging/**"
       - ".github/workflows/main.yaml"
 
 permissions:
@@ -79,21 +80,21 @@ jobs:
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |-
-          kubectl create namespace project || true
-          sops --decrypt todo-app/manifests/postgres/todo-db-secret.enc.yaml | kubectl apply -n project -f -
+          kubectl create namespace staging || true
+          sops --decrypt todo-app/manifests/postgres/todo-db-secret.enc.yaml | kubectl apply -n staging -f -
 
       - name: Apply broadcaster telegram secret
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |-
-          sops --decrypt todo-app/manifests-gke/broadcaster-secret.enc.yaml | kubectl apply -n project -f -
+          sops --decrypt todo-app/manifests-gke/base/broadcaster-secret.enc.yaml | kubectl apply -n staging -f -
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v3
 
       - name: Update image tags in kustomization
         run: |-
-          cd todo-app/manifests-gke
+          cd todo-app/manifests-gke/overlays/staging
           kustomize edit set image PROJECT/TODO-FRONTEND=$FRONTEND_TAG
           kustomize edit set image PROJECT/TODO-BACKEND=$BACKEND_TAG
           kustomize edit set image PROJECT/CREATE-WIKI-TODO-JOB=$JOB_TAG
@@ -102,5 +103,5 @@ jobs:
       - name: Commit kustomization.yaml back to repo
         uses: EndBug/add-and-commit@v9
         with:
-          add: "todo-app/manifests-gke/kustomization.yaml"
-          message: "New todo-app version! ${{ github.sha }}"
+          add: "todo-app/manifests-gke/overlays/staging/kustomization.yaml"
+          message: "New todo-app staging version! ${{ github.sha }}"
