@@ -12,13 +12,13 @@ patches:
 images:
 - name: PROJECT/BROADCASTER
   newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/broadcaster
-  newTag: main-c22010f6f54d58b524b91be98e38ec31a25acf20
+  newTag: main-4e75aa88ed02537ba0d24fb22174e827209d0e8b
 - name: PROJECT/CREATE-WIKI-TODO-JOB
   newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/create-wiki-todo-job
-  newTag: main-c22010f6f54d58b524b91be98e38ec31a25acf20
+  newTag: main-4e75aa88ed02537ba0d24fb22174e827209d0e8b
 - name: PROJECT/TODO-BACKEND
   newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/todo-backend
-  newTag: main-c22010f6f54d58b524b91be98e38ec31a25acf20
+  newTag: main-4e75aa88ed02537ba0d24fb22174e827209d0e8b
 - name: PROJECT/TODO-FRONTEND
   newName: europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/todo-frontend
-  newTag: main-c22010f6f54d58b524b91be98e38ec31a25acf20
+  newTag: main-4e75aa88ed02537ba0d24fb22174e827209d0e8b
