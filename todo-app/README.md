@@ -3,7 +3,7 @@
 Three services:
 
 - [`./front`](./front/) — React Router 8 SSR frontend (todo form, random header image). Fetches todos server-side from the backend via `TODO_BACKEND_URL`.
-- [`./back`](./back/) — Bun + Hono backend. Todos are stored in PostgreSQL (`GET/POST /todos`, also under `/api/todos`). Publishes `{event, id, text}` to NATS on create/update.
+- [`./back`](./back/) — Bun + Hono backend. Todos are stored in PostgreSQL (`GET/POST /todos`, also under `/api/todos`). Publishes `{event, id, text, completed}` to NATS on create/update.
 - [`./broadcaster`](./broadcaster/) — Bun service (Exercise 4.6). Subscribes to NATS in queue group `broadcaster` and forwards todo events to Telegram. Runs 6 replicas, each message delivered once.
 - [`./jobs/CreateWikiTodoJob`](./jobs/CreateWikiTodoJob/) — Bun job (runs as a Kubernetes CronJob) that inserts a `Read <random Wikipedia article>` todo every hour.
 - [`./manifests`](./manifests/) — Kubernetes manifests for all services, the ingress, the jobs, and the database.
@@ -14,8 +14,8 @@ Three services:
 # terminal 0 — local postgres
 docker run -d --name todo-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=todos -p 5432:5432 postgres:18
 
-# terminal 1 — backend
-cd back && bun install && DB_HOST=localhost POSTGRES_PASSWORD=postgres bun run index.ts   # listens on :3000
+# terminal 1 — backend (needs DB_* + NATS_* — see back/.env.example)
+cd back && bun install && cp .env.example .env && bun run index.ts   # listens on :3000
 
 # terminal 2 — frontend
 cd front && bun install && cp .env.example .env && bun dev
@@ -78,6 +78,7 @@ Deploy the todo-app to Google Kubernetes Engine using Kustomize.
 - `gcloud` authenticated (`gcloud auth login`) with the target project set.
 - A cluster exists — create with [`../gke-scripts/start_cluster.sh`](../gke-scripts/start_cluster.sh).
 - Gateway API enabled on the cluster — [`../gke-scripts/enable_gatewayapi.sh`](../gke-scripts/enable_gatewayapi.sh).
+- NATS installed on the cluster — [`../gke-scripts/install_nats.sh`](../gke-scripts/install_nats.sh).
 
 ### Deploy
 
@@ -85,7 +86,7 @@ Deploy the todo-app to Google Kubernetes Engine using Kustomize.
 ./scripts/deploy-gke.sh
 ```
 
-The script builds the three images, tags and pushes them to Google Container Registry (`gcr.io/dwk-gke-509503/*`), fetches the GKE cluster credentials (`dwk-cluster` in `europe-north1-b`), applies the database secret (decrypted via sops + age), and applies all resources via Kustomize:
+The script builds the four images, tags and pushes them to Google Container Registry (`gcr.io/dwk-gke-509503/*`), fetches the GKE cluster credentials (`dwk-cluster` in `europe-north1-b`), applies the database secret (decrypted via sops + age), and applies all resources via Kustomize:
 
 ```bash
 kubectl apply -k manifests-gke/
@@ -114,14 +115,14 @@ curl http://<EXTERNAL-IP>/api/todos # backend
 
 ## Broadcaster
 
-Async Telegram notifications via NATS. Flow: `todo-backend --publish (todos)--> NATS --queue subscribe--> broadcaster (x6) --sendMessage--> Telegram`.
+Async Telegram notifications via NATS. Flow: `todo-backend --publish (todos)--> NATS --queue subscribe--> broadcaster (x6) --sendMessage--> Telegram`. Requires NATS on the cluster ([`../gke-scripts/install_nats.sh`](../gke-scripts/install_nats.sh)).
 
 ## Automatic deployment (Exercise 3.6)
 
 Pushes to `main` deploy the project automatically via GitHub Actions ([`.github/workflows/main.yaml`](../.github/workflows/main.yaml)):
 
 1. **Authenticate** to GCP with Workload Identity Federation (keyless OIDC, no service-account keys).
-2. **Build** the three images (`todo-frontend`, `todo-backend`, `create-wiki-todo-job`) tagged `europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/<image>:main-<sha>`.
+2. **Build** the four images (`todo-frontend`, `todo-backend`, `create-wiki-todo-job`, `broadcaster`) tagged `europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/<image>:main-<sha>`.
 3. **Push** them to Artifact Registry (`my-repository` in `europe-north1`).
 4. **Deploy** with Kustomize: `kustomize edit set image …` rewrites the `gcr.io/dwk-gke-509503/*` image references to the freshly pushed tags, then `kustomize build . | kubectl apply -f -`, followed by `kubectl rollout status` for `todo-backend-dep` and `todo-frontend-dep`.
 
