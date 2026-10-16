@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - '**'
+    paths:
+      - 'todo-app/**'
+      - '.github/workflows/main.yaml'
 
 permissions:
   contents: read

@@ -1,0 +1,70 @@
+name: Log Output GitOps
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'log_output/**'
+      - '.github/workflows/log-output-gitops.yaml'
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  GKE_CLUSTER: dwk-cluster
+  GKE_ZONE: europe-north1-b
+  REGISTRY: europe-north1-docker.pkg.dev
+  REPOSITORY: my-repository
+  BRANCH: ${{ github.ref_name }}
+
+jobs:
+  build-publish-commit:
+    name: Build, Publish and Update Manifests
+    runs-on: ubuntu-latest
+    environment: GKE_PROJECT
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: "${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}"
+          service_account: "${{ secrets.SERVICE_ACCOUNT }}"
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud --quiet auth configure-docker $REGISTRY
+
+      - name: Form the image names
+        run: |-
+          echo "WRITER_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/log-output-writer:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
+          echo "RESPONDER_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/log-output-responder:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
+
+      - name: Build
+        run: |-
+          docker build --tag $WRITER_TAG log_output/writer
+          docker build --tag $RESPONDER_TAG log_output/responder
+
+      - name: Publish
+        run: |-
+          docker push $WRITER_TAG
+          docker push $RESPONDER_TAG
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v3
+
+      - name: Update image tags in kustomization
+        run: |-
+          cd log_output/manifests-gke
+          kustomize edit set image PROJECT/WRITER=$WRITER_TAG
+          kustomize edit set image PROJECT/RESPONDER=$RESPONDER_TAG
+
+      - name: Commit kustomization.yaml back to repo
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'log_output/manifests-gke/kustomization.yaml'
+          message: 'New log-output version! ${{ github.sha }}'
