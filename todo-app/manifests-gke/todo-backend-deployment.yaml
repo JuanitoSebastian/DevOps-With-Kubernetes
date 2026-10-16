@@ -37,6 +37,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: todo-db-config
+            - configMapRef:
+                name: nats-config
             - secretRef:
                 name: todo-db-secret
           env:

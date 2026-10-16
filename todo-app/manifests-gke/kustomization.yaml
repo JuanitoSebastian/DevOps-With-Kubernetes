@@ -9,6 +9,8 @@ resources:
   - postgres/todo-db-statefulset.yaml
   - postgres/db-check-job.yaml
   - postgres/todo-db-backup-cronjob.yaml
+  - nats-configmap.yaml
+  - broadcaster-deployment.yaml
   - todo-backend-deployment.yaml
   - todo-backend-service.yaml
   - todo-frontend-deployment.yaml

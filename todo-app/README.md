@@ -3,7 +3,8 @@
 Three services:
 
 - [`./front`](./front/) — React Router 8 SSR frontend (todo form, random header image). Fetches todos server-side from the backend via `TODO_BACKEND_URL`.
-- [`./back`](./back/) — Bun + Hono backend. Todos are stored in PostgreSQL (`GET/POST /todos`, also under `/api/todos`).
+- [`./back`](./back/) — Bun + Hono backend. Todos are stored in PostgreSQL (`GET/POST /todos`, also under `/api/todos`). Publishes `{event, id, text}` to NATS on create/update.
+- [`./broadcaster`](./broadcaster/) — Bun service (Exercise 4.6). Subscribes to NATS in queue group `broadcaster` and forwards todo events to Telegram. Runs 6 replicas, each message delivered once.
 - [`./jobs/CreateWikiTodoJob`](./jobs/CreateWikiTodoJob/) — Bun job (runs as a Kubernetes CronJob) that inserts a `Read <random Wikipedia article>` todo every hour.
 - [`./manifests`](./manifests/) — Kubernetes manifests for all services, the ingress, the jobs, and the database.
 
@@ -110,6 +111,10 @@ kubectl get gateway todo-app-gateway -n project
 curl http://<EXTERNAL-IP>/          # frontend
 curl http://<EXTERNAL-IP>/api/todos # backend
 ```
+
+## Broadcaster
+
+Async Telegram notifications via NATS. Flow: `todo-backend --publish (todos)--> NATS --queue subscribe--> broadcaster (x6) --sendMessage--> Telegram`.
 
 ## Automatic deployment (Exercise 3.6)
 

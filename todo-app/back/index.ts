@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { SQL } from "bun";
 
 import { config } from "./config";
+import { publishTodoEvent } from "./nats";
 import { createTodoSchema, todoIdSchema, updateTodoSchema } from "./todos";
 
 const app = new Hono();
@@ -56,6 +57,7 @@ const todosApp = new Hono()
       RETURNING id, title AS text, created_at, completed_at,
         (completed_at IS NOT NULL) AS completed
     `;
+    publishTodoEvent({ event: "created", id: todo.id, text: todo.text });
     return c.json(todo, 201);
   })
   .put("/todos/:id", async (c) => {
@@ -85,6 +87,12 @@ const todosApp = new Hono()
       if (!todo) {
         return c.json({ error: "todo not found" }, 404);
       }
+      publishTodoEvent({
+        event: "updated",
+        id: todo.id,
+        text: todo.text,
+        completed: todo.completed,
+      });
       return c.json(todo);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

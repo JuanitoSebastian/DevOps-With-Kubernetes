@@ -23,8 +23,11 @@ Requires a local PostgreSQL:
 docker run -d --name todo-pg \
   -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=todos -p 5432:5432 postgres:18
 
+docker run -d --name nats -p 4222:4222 nats:alpine
+
 DB_HOST=localhost DB_PORT=5432 POSTGRES_DB=todos POSTGRES_USER=postgres \
-POSTGRES_PASSWORD=postgres bun run index.ts
+POSTGRES_PASSWORD=postgres NATS_URL=nats://localhost:4222 NATS_SUBJECT=todos \
+bun run index.ts
 ```
 
 Listens on the `PORT` environment variable (default `3000`). Test it:
@@ -38,16 +41,20 @@ curl -X POST http://localhost:3000/todos \
 
 ## Environment variables
 
-| Variable             | Default     | Description                             |
-| :------------------- | :---------- | :-------------------------------------- |
-| `PORT`               | `3000`      | Server listen port                      |
-| `DB_HOST`            | `localhost` | Database host                          |
-| `DB_PORT`            | `5432`      | Database port                          |
-| `POSTGRES_DB`        | `todos`     | Database name                          |
-| `POSTGRES_USER`      | `postgres`  | Database user                          |
-| `POSTGRES_PASSWORD`  | `postgres`  | Database password                       |
+| Variable             | Required | Description                             |
+| :------------------- | :------- | :-------------------------------------- |
+| `PORT`               | No (`3000`) | Server listen port                   |
+| `DB_HOST`            | Yes      | Database host                           |
+| `DB_PORT`            | Yes      | Database port                           |
+| `POSTGRES_DB`        | Yes      | Database name                           |
+| `POSTGRES_USER`      | Yes      | Database user                           |
+| `POSTGRES_PASSWORD`  | Yes      | Database password                       |
+| `NATS_URL`           | Yes      | NATS server URL (e.g. `nats://my-nats.nats.svc.cluster.local:4222`) |
+| `NATS_SUBJECT`       | Yes      | NATS subject for todo events (e.g. `todos`) |
 
-In Kubernetes, `DB_HOST`, `DB_PORT`, `POSTGRES_DB`, and `POSTGRES_USER` come from the `todo-db-config` **ConfigMap** (also injected into the database StatefulSet), and `POSTGRES_PASSWORD` from the `todo-db-secret` **Secret**.
+In Kubernetes, `DB_HOST`, `DB_PORT`, `POSTGRES_DB`, and `POSTGRES_USER` come from the `todo-db-config` **ConfigMap** (also injected into the database StatefulSet), `NATS_URL` and `NATS_SUBJECT` from the `nats-config` **ConfigMap**, and `POSTGRES_PASSWORD` from the `todo-db-secret` **Secret**.
+
+On every successful `POST /todos` / `PUT /todos/:id` the backend publishes `{event, id, text, completed}` to NATS (fire-and-forget, at-most-once: a NATS outage never fails the todo request).
 
 ## Docker
 

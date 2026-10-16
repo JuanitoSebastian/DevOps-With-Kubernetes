@@ -1,0 +1,20 @@
+{
+  "name": "broadcaster",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run index.ts",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  },
+  "dependencies": {
+    "nats": "^2.29.3",
+    "zod": "^4.6.7"
+  }
+}

@@ -26,4 +26,8 @@ export const config = {
     username: requireEnv("POSTGRES_USER"),
     password: requireEnv("POSTGRES_PASSWORD"),
   },
+  nats: {
+    url: requireEnv("NATS_URL"),
+    subject: requireEnv("NATS_SUBJECT"),
+  },
 } as const;

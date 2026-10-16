@@ -51,6 +51,7 @@ jobs:
           echo "FRONTEND_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/todo-frontend:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
           echo "BACKEND_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/todo-backend:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
           echo "JOB_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/create-wiki-todo-job:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
+          echo "BROADCASTER_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/broadcaster:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
 
       - name: Set namespace
         run: |-
@@ -74,17 +75,25 @@ jobs:
         run: |-
           sops --decrypt todo-app/manifests/postgres/todo-db-secret.enc.yaml | sed "s/namespace: project$/namespace: $NAMESPACE/" | kubectl apply -n "$NAMESPACE" -f -
 
+      - name: Apply broadcaster telegram secret
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        run: |-
+          sops --decrypt todo-app/manifests-gke/broadcaster-secret.enc.yaml | sed "s/namespace: project$/namespace: $NAMESPACE/" | kubectl apply -n "$NAMESPACE" -f -
+
       - name: Build
         run: |-
           docker build --tag $FRONTEND_TAG todo-app/front
           docker build --tag $BACKEND_TAG todo-app/back
           docker build --tag $JOB_TAG todo-app/jobs/CreateWikiTodoJob
+          docker build --tag $BROADCASTER_TAG todo-app/broadcaster
 
       - name: Publish
         run: |-
           docker push $FRONTEND_TAG
           docker push $BACKEND_TAG
           docker push $JOB_TAG
+          docker push $BROADCASTER_TAG
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v3
@@ -97,7 +106,9 @@ jobs:
           kustomize edit set image gcr.io/$PROJECT_ID/todo-frontend=$FRONTEND_TAG
           kustomize edit set image gcr.io/$PROJECT_ID/todo-backend=$BACKEND_TAG
           kustomize edit set image gcr.io/$PROJECT_ID/create-wiki-todo-job=$JOB_TAG
+          kustomize edit set image gcr.io/$PROJECT_ID/broadcaster=$BROADCASTER_TAG
           kustomize build . | kubectl apply -f -
           kubectl rollout status deployment/todo-backend-dep --timeout=5m
           kubectl rollout status deployment/todo-frontend-dep --timeout=5m
+          kubectl rollout status deployment/broadcaster-dep --timeout=5m
           kubectl get services -o wide
