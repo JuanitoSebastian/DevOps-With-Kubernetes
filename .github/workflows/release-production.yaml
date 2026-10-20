@@ -88,6 +88,12 @@ jobs:
         run: |-
           sops --decrypt todo-app/manifests-gke/base/broadcaster-secret.enc.yaml | kubectl apply -n production -f -
 
+      - name: Apply backup storage SA key
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        run: |-
+          sops --decrypt todo-app/manifests-gke/base/storage-sa-key.enc.yaml | kubectl apply -n production -f -
+
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v3
 
