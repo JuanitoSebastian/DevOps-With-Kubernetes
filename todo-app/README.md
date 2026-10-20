@@ -86,15 +86,15 @@ Deploy the todo-app to Google Kubernetes Engine using Kustomize.
 ./scripts/deploy-gke.sh
 ```
 
-The script builds the four images, tags and pushes them to Google Container Registry (`gcr.io/dwk-gke-509503/*`), fetches the GKE cluster credentials (`dwk-cluster` in `europe-north1-b`), applies the database secret (decrypted via sops + age), and applies the **staging** resources via Kustomize:
+The script builds the four images, tags and pushes them to Google Container Registry (`gcr.io/dwk-gke-509503/*`), fetches the GKE cluster credentials (`dwk-cluster` in `europe-north1-b`), applies the database secret (decrypted via sops + age), and applies the **staging** resources via Kustomize (from the [config repo](https://github.com/JuanitoSebastian/dwk-todo-app-config), Exercise 4.10):
 
 ```bash
-kubectl apply -k manifests-gke/overlays/staging
+kubectl apply -k <config-repo>/manifests/overlays/staging
 # or preview without applying:
-kubectl kustomize manifests-gke/overlays/staging
+kubectl kustomize <config-repo>/manifests/overlays/staging
 ```
 
-The GKE manifests (`manifests-gke/`) follow the Kustomize **base + overlays** pattern: `base/` holds the shared workloads, `overlays/staging/` (`namespace: staging`) and `overlays/production/` (`namespace: production`) hold the per-environment image tags and patches — the k3d `manifests/` folder is left untouched. Differences:
+The GKE manifests in the config repo follow the Kustomize **base + overlays** pattern: `base/` holds the shared workloads, `overlays/staging/` (`namespace: staging`) and `overlays/production/` (`namespace: production`) hold the per-environment image tags and patches — the k3d `manifests/` folder is left untouched. Differences:
 
 - Images reference `gcr.io/dwk-gke-509503/<image>` — update the project ID if yours differs (or set `GKE_PROJECT` when running the script).
 - No manual `PersistentVolume` (`pv.yaml`) — GKE auto-provisions storage from the `PersistentVolumeClaim` (`standard-rwo` for postgres).
@@ -118,15 +118,15 @@ curl http://<EXTERNAL-IP>/api/todos # backend
 
 Async Telegram notifications via NATS. Flow: `todo-backend --publish (todos)--> NATS --queue subscribe--> broadcaster (x6) --sendMessage--> Telegram`. Requires NATS on the cluster ([`../gke-scripts/install_nats.sh`](../gke-scripts/install_nats.sh)). In **staging** the broadcaster runs in `log-only` mode (`BROADCASTER_MODE=log-only` set by the staging overlay patch): it logs `LOG-ONLY (no forward): …` and never calls Telegram — see [`broadcaster/`](./broadcaster/).
 
-## Automatic deployment (Exercises 3.6, GitOps since 4.8, staging/production since 4.9)
+## Automatic deployment (Exercises 3.6, GitOps since 4.8, staging/production since 4.9, separate config repo since 4.10)
 
-Two environments in their own namespaces. Pushes to `main` deploy to **staging**; tagged pushes deploy to **production** — both via pull-based GitOps (same pattern as `log_output` Exercise 4.7). GitHub Actions never runs `kubectl apply` for the app — ArgoCD does:
+Two environments in their own namespaces. Pushes to `main` deploy to **staging**; tagged pushes deploy to **production** — both via pull-based GitOps (same pattern as `log_output` Exercise 4.7). Since Exercise 4.10, Kubernetes configuration lives in a separate repository — [JuanitoSebastian/dwk-todo-app-config](https://github.com/JuanitoSebastian/dwk-todo-app-config) — while this repo holds the application code and CI workflows. GitHub Actions builds images and commits updated image tags to the config repo; ArgoCD syncs the cluster from there. GitHub Actions never runs `kubectl apply` for the app — ArgoCD does:
 
 | | Staging | Production |
 | :--- | :--- | :--- |
-| Trigger | push to `main` ([`main.yaml`](../.github/workflows/main.yaml)) | push of any tag, e.g. `4.9` ([`release-production.yaml`](../.github/workflows/release-production.yaml)) |
+| Trigger | push to `main` ([`main.yaml`](../.github/workflows/main.yaml)) | push of any tag, e.g. `4.10` ([`release-production.yaml`](../.github/workflows/release-production.yaml)) |
 | Images | `…/my-repository/<image>:main-<sha>` | `…/my-repository/<image>:<tag>-<sha>` |
-| Overlay updated | `manifests-gke/overlays/staging/kustomization.yaml` | `manifests-gke/overlays/production/kustomization.yaml` |
+| Overlay updated (in config repo) | `manifests/overlays/staging/kustomization.yaml` | `manifests/overlays/production/kustomization.yaml` |
 | ArgoCD app | `todo-app-staging` → namespace `staging` | `todo-app-production` → namespace `production` |
 | Broadcaster | `log-only` (no Telegram) | forwards to Telegram |
 | DB backup | none | daily `todo-db-backup` CronJob → GCS |
@@ -136,16 +136,17 @@ Each workflow otherwise does the same:
 1. **Authenticate** to GCP with Workload Identity Federation (keyless OIDC, no service-account keys).
 2. **Build** the four images (`todo-frontend`, `todo-backend`, `create-wiki-todo-job`, `broadcaster`) tagged `europe-north1-docker.pkg.dev/dwk-gke-509503/my-repository/<image>:main-<sha>`.
 3. **Push** them to Artifact Registry (`my-repository` in `europe-north1`).
-4. **Apply secrets outside ArgoCD** (ArgoCD cannot decrypt SOPS): `sops --decrypt … | kubectl apply -n <env> -f -` for `todo-db-secret` and `broadcaster-telegram-secret`. The `.enc.yaml` files stay out of the Kustomize resources on purpose, and carry no hardcoded `namespace` so `-n` selects the environment.
-5. **Update manifests**: `kustomize edit set image PROJECT/…=$TAG` rewrites the `PROJECT/TODO-FRONTEND`, `PROJECT/TODO-BACKEND`, `PROJECT/BROADCASTER`, `PROJECT/CREATE-WIKI-TODO-JOB` placeholders in the environment's overlay, then commits that overlay's `kustomization.yaml` back.
-6. **ArgoCD syncs** `main:todo-app/manifests-gke/overlays/<env>` into its namespace (`prune:true, selfHeal:true`, ~3min poll, see [`argocd/application-staging.yaml`](./argocd/application-staging.yaml) and [`argocd/application-production.yaml`](./argocd/application-production.yaml)).
+4. **Check out the config repo** (`dwk-todo-app-config`) using the `CONFIG_REPO_PAT` token.
+5. **Apply secrets outside ArgoCD** (ArgoCD cannot decrypt SOPS): `sops --decrypt … | kubectl apply -n <env> -f -` for `todo-db-secret` and `broadcaster-telegram-secret`. The `.enc.yaml` files stay out of the Kustomize resources on purpose, and carry no hardcoded `namespace` so `-n` selects the environment.
+6. **Update manifests**: `kustomize edit set image PROJECT/…=$TAG` rewrites the `PROJECT/TODO-FRONTEND`, `PROJECT/TODO-BACKEND`, `PROJECT/BROADCASTER`, `PROJECT/CREATE-WIKI-TODO-JOB` placeholders in the environment's overlay in the config repo, then commits that overlay's `kustomization.yaml` back to the config repo (pushed with the PAT).
+7. **ArgoCD syncs** `main:manifests/overlays/<env>` of the config repo into its namespace (`prune:true, selfHeal:true`, ~3min poll, see [`application-staging.yaml`](https://github.com/JuanitoSebastian/dwk-todo-app-config/blob/main/argocd/application-staging.yaml) and [`application-production.yaml`](https://github.com/JuanitoSebastian/dwk-todo-app-config/blob/main/argocd/application-production.yaml) in the config repo).
 
 Register the apps once (ArgoCD already installed from Exercise 4.7):
 
 ```bash
 kubectl config use-context gke_dwk-gke-509503_europe-north1-b_dwk-cluster
-kubectl apply -n argocd -f todo-app/argocd/application-staging.yaml
-kubectl apply -n argocd -f todo-app/argocd/application-production.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/JuanitoSebastian/dwk-todo-app-config/main/argocd/application-staging.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/JuanitoSebastian/dwk-todo-app-config/main/argocd/application-production.yaml
 kubectl -n argocd get applications
 ```
 
@@ -164,13 +165,15 @@ Run [`./scripts/setup-gcp-github-actions.sh`](./scripts/setup-gcp-github-actions
 | `GKE_PROJECT` | GCP project ID |
 | `SERVICE_ACCOUNT` | Service account email used by GitHub Actions |
 | `WORKLOAD_IDENTITY_PROVIDER` | Full Workload Identity Provider resource name |
+| `CONFIG_REPO_PAT` | Fine-grained PAT with Contents read/write on `dwk-todo-app-config`, used to commit image tags to the config repo |
+| `SOPS_AGE_KEY` | Age private key used to decrypt the SOPS secrets |
 
 ## Monitoring
 
 ## Database backups (Exercise 3.10, production-only since 4.9)
 
 A **CronJob** (`todo-db-backup`, schedule `0 0 * * *`, GKE-only in
-[`manifests-gke/overlays/production/todo-db-backup-cronjob.yaml`](./manifests-gke/overlays/production/todo-db-backup-cronjob.yaml))
+[`manifests/overlays/production/todo-db-backup-cronjob.yaml`](https://github.com/JuanitoSebastian/dwk-todo-app-config/blob/main/manifests/overlays/production/todo-db-backup-cronjob.yaml) of the config repo)
 dumps the `todos` database with `pg_dump` once per 24 hours and uploads
 `backup-YYYY-MM-DD.sql` to the GCS bucket `juanito-dwk-todo-backups`.
 The job runs the `google/cloud-sdk:alpine` image, installs

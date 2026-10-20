@@ -52,6 +52,7 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**4.7**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.7/log_output) | Baby steps to GitOps | Completed |
 | [**4.8**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.8/todo-app) | The project, step 24 | Completed |
 | [**4.9**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.9/todo-app) | The project, step 25 | Completed |
+| [**4.10**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.10/todo-app) | The project, the grande finale | Completed — config moved to [dwk-todo-app-config](https://github.com/JuanitoSebastian/dwk-todo-app-config) |
 <!-- Add future exercise links below as releases are created -->
 
 ### 4.3 Query

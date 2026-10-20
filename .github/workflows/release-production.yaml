@@ -30,6 +30,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Checkout config repo
+        uses: actions/checkout@v4
+        with:
+          repository: JuanitoSebastian/dwk-todo-app-config
+          token: ${{ secrets.CONFIG_REPO_PAT }}
+          path: config-repo
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
@@ -80,35 +87,36 @@ jobs:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |-
           kubectl create namespace production || true
-          sops --decrypt todo-app/manifests/postgres/todo-db-secret.enc.yaml | kubectl apply -n production -f -
+          sops --decrypt config-repo/manifests/base/todo-db-secret.enc.yaml | kubectl apply -n production -f -
 
       - name: Apply broadcaster telegram secret
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |-
-          sops --decrypt todo-app/manifests-gke/base/broadcaster-secret.enc.yaml | kubectl apply -n production -f -
+          sops --decrypt config-repo/manifests/base/broadcaster-secret.enc.yaml | kubectl apply -n production -f -
 
       - name: Apply backup storage SA key
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |-
-          sops --decrypt todo-app/manifests-gke/base/storage-sa-key.enc.yaml | kubectl apply -n production -f -
+          sops --decrypt config-repo/manifests/base/storage-sa-key.enc.yaml | kubectl apply -n production -f -
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v3
 
       - name: Update image tags in kustomization
         run: |-
-          cd todo-app/manifests-gke/overlays/production
+          cd config-repo/manifests/overlays/production
           kustomize edit set image PROJECT/TODO-FRONTEND=$FRONTEND_TAG
           kustomize edit set image PROJECT/TODO-BACKEND=$BACKEND_TAG
           kustomize edit set image PROJECT/CREATE-WIKI-TODO-JOB=$JOB_TAG
           kustomize edit set image PROJECT/BROADCASTER=$BROADCASTER_TAG
 
-      - name: Commit kustomization.yaml back to repo
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: "todo-app/manifests-gke/overlays/production/kustomization.yaml"
-          message: "New todo-app production version! ${{ github.ref_name }} ${{ github.sha }}"
-          # Tag pushes check out a detached HEAD, so push explicitly to main
-          push: "origin HEAD:main"
+      - name: Commit kustomization.yaml back to config repo
+        run: |-
+          cd config-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifests/overlays/production/kustomization.yaml
+          git commit -m "New todo-app production version! ${{ github.ref_name }} ${{ github.sha }}"
+          git push

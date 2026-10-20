@@ -40,10 +40,11 @@ export SOPS_AGE_KEY_FILE="$DIR/key.txt"
 sops --decrypt "$DIR/manifests/postgres/todo-db-secret.enc.yaml" | kubectl apply -n staging -f -
 
 echo "==> Applying broadcaster telegram secret (decrypted via sops + age)"
-sops --decrypt "$DIR/manifests-gke/base/broadcaster-secret.enc.yaml" | kubectl apply -n staging -f -
+CONFIG_REPO_DIR="${CONFIG_REPO_DIR:-$(cd "$DIR/../../dwk-todo-app-config" && pwd)}"
+sops --decrypt "$CONFIG_REPO_DIR/manifests/base/broadcaster-secret.enc.yaml" | kubectl apply -n staging -f -
 
 echo "==> Deploying staging resources via Kustomize"
-kubectl apply -k "$DIR/manifests-gke/overlays/staging"
+kubectl apply -k "$CONFIG_REPO_DIR/manifests/overlays/staging"
 
 echo "==> Done. Watching pod status... (Ctrl-C to stop)"
 kubectl get pods -n staging -w

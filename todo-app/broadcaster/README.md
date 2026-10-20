@@ -45,12 +45,15 @@ docker build -t broadcaster .
 
 ## Kubernetes (GKE)
 
-Deployment `broadcaster-dep` (`manifests-gke/base/broadcaster-deployment.yaml`) runs **6 replicas**. Telegram credentials come from the SOPS-encrypted `broadcaster-secret.enc.yaml` Secret (applied per environment with `kubectl apply -n <env>`, outside ArgoCD):
+Deployment `broadcaster-dep` (`manifests/base/broadcaster-deployment.yaml` in the
+[config repo](https://github.com/JuanitoSebastian/dwk-todo-app-config)) runs **6 replicas**.
+Telegram credentials come from the SOPS-encrypted `broadcaster-secret.enc.yaml` Secret
+(applied per environment with `kubectl apply -n <env>`, outside ArgoCD):
 
 ```bash
 export SOPS_AGE_KEY_FILE="$PWD/key.txt"
-sops --decrypt manifests-gke/base/broadcaster-secret.enc.yaml | kubectl apply -n staging -f -
-kubectl apply -k manifests-gke/overlays/staging/
+sops --decrypt <config-repo>/manifests/base/broadcaster-secret.enc.yaml | kubectl apply -n staging -f -
+kubectl apply -k <config-repo>/manifests/overlays/staging/
 kubectl get pods -n staging -l app=broadcaster
 kubectl logs -n staging deploy/broadcaster-dep -f
 ```
