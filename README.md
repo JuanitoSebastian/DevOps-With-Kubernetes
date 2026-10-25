@@ -54,6 +54,7 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**4.9**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.9/todo-app) | The project, step 25 | Completed |
 | [**4.10**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/4.10/todo-app) | The project, the grande finale | Completed — config moved to [dwk-todo-app-config](https://github.com/JuanitoSebastian/dwk-todo-app-config) |
 | [**5.1**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/5.1/dummy-site) | DIY CRD & Controller | Completed |
+| [**5.2**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/5.2/bookinfo) | Getting started with Istio service mesh | Completed |
 <!-- Add future exercise links below as releases are created -->
 
 ### 4.3 Query
