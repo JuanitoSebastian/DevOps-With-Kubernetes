@@ -27,6 +27,19 @@ kubectl get jobs -n exercises          # expect Complete
 kubectl logs -n exercises db-check-<pod> # expect "accepting connections" + "1"
 ```
 
+### Service mesh variant (Exercise 5.3, Istio ambient on k3d)
+
+Same apps as `manifests/` but a plain `Deployment` (`ping-pong-dep`) instead of an Argo Rollout,
+and `ping-pong-svc` on port 80 with the port named `http`:
+
+```bash
+docker build -t ping-pong:latest .
+k3d image import -c k3s-default ping-pong:latest postgres:18
+kubectl apply -f manifests-istio/
+```
+
+The exposing route (`/pingpong` → ping-pong) lives in `log_output/manifests-istio/gateway.yaml`.
+
 ## GKE Deployment (Exercise 3.1)
 
 Deploy ping-pong to Google Kubernetes Engine, exposed through a `LoadBalancer` service.

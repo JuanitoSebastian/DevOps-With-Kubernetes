@@ -1,5 +1,43 @@
 # Log Output Application
 
+## Service mesh deployment (Exercise 5.3, Istio ambient on k3d)
+
+**Prerequisite:** Istio ambient (istiod, ztunnel, istio-cni), Kiali, Prometheus and the Gateway API CRDs are already installed on the cluster — see `bookinfo/README.md` and the Istio docs. This exercise does not install Istio itself.
+
+Same app plus a new `greeter` service; the responder appends `greetings: ...` to `GET /`.
+Namespace `exercises` must be enrolled in the mesh (`istio.io/dataplane-mode=ambient`,
+`istio.io/use-waypoint=waypoint`) — done by `manifests-istio/namespace.yaml`.
+
+```bash
+# images (one-time per change)
+cd writer && docker build -t log-output-writer:latest . && cd ..
+cd responder && docker build -t log-output-responder:latest . && cd ..
+cd greeter && docker build -t greeter:latest . && cd ..
+docker pull postgres:18
+k3d image import -c k3s-default log-output-writer:latest log-output-responder:latest greeter:latest postgres:18
+
+# mesh + apps
+kubectl apply -f manifests-istio/namespace.yaml
+kubectl apply -f manifests-istio/waypoint.yaml
+kubectl apply -f ../ping-pong/manifests-istio/
+kubectl apply -f greeter/manifests/
+kubectl apply -f manifests-istio/log-output.yaml -f manifests-istio/gateway.yaml
+kubectl annotate gateway log-output-gateway -n exercises networking.istio.io/service-type=ClusterIP
+kubectl get pods -n exercises -w   # all Running
+```
+
+Access as in bookinfo:
+```bash
+kubectl port-forward -n exercises svc/log-output-gateway-istio 8080:80
+curl localhost:8080/         # file content, MESSAGE, log line, pongs, greetings: Hello from version 1|2
+curl localhost:8080/pingpong # pong N
+```
+
+Traffic split: `greeter/manifests/greeter-route.yaml` attaches an HTTPRoute to `greeter-svc`
+(kind `Service`, `group: ""` — required, otherwise Istio ignores the route) and splits 75% to
+`greeter-svc-1`, 25% to `greeter-svc-2`. Verify: `curl localhost:8080/ | grep greetings` in a
+loop, and in Kiali (`istioctl dashboard kiali`) the exercises namespace graph shows the split.
+
 ## Kubernetes Deployment (GitOps / ArgoCD on GKE, Exercise 4.7)
 
 Commits to `log_output/**` auto-deploy to GKE (`dwk-cluster`, namespace `exercises`) via pull-based GitOps. No `kubectl apply` for app updates, no image pull secret (nodes pull same-project GAR natively).
