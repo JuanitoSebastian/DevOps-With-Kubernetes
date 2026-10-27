@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wikipedia-svc
+  namespace: exercises
+  labels:
+    app: wikipedia
+spec:
+  type: ClusterIP
+  selector:
+    app: wikipedia
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wikipedia-dep
+  namespace: exercises
+  labels:
+    app: wikipedia
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wikipedia
+  template:
+    metadata:
+      labels:
+        app: wikipedia
+    spec:
+      volumes:
+        - name: html-storage
+          emptyDir: {}
+      initContainers:
+        - name: init-fetch-kubernetes
+          image: curlimages/curl:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - 'curl -sL https://en.wikipedia.org/wiki/Kubernetes -o /shared/index.html && echo "Fetched initial Kubernetes page"'
+          volumeMounts:
+            - name: html-storage
+              mountPath: /shared
+      containers:
+        - name: nginx-server
+          image: nginx:alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: html-storage
+              mountPath: /usr/share/nginx/html
+        - name: random-wiki-sidecar
+          image: curlimages/curl:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - >-
+              while true; do
+                DELAY=$(awk 'BEGIN{srand(); print int(300 + rand()*601)}');
+                echo "Sleeping ${DELAY}s before fetching a random Wikipedia page";
+                sleep "${DELAY}";
+                if curl -sL https://en.wikipedia.org/wiki/Special:Random -o /shared/index.html.tmp; then
+                  mv /shared/index.html.tmp /shared/index.html;
+                  echo "Updated page with a random Wikipedia article";
+                else
+                  echo "Fetch failed, keeping current page";
+                fi;
+              done
+          volumeMounts:
+            - name: html-storage
+              mountPath: /shared
