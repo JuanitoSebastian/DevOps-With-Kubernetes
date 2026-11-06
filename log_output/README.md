@@ -1,5 +1,27 @@
 # Log Output Application
 
+## Serverless deployment (Exercise 5.7, Knative Serving on k3d)
+
+Same cluster as exercise 5.6 (`../knative/README.md`). Ping-pong runs as a ksvc; the responder calls it in-cluster with the FQDN `http://pingpong.exercises.svc.cluster.local/pings`. The image is tagged `dev.local/ping-pong:latest` so Knative skips registry tag resolving. No Ingress (Traefik is disabled in this cluster) — verify via port-forward.
+
+```bash
+# build
+cd writer && docker build -t log-output-writer:latest . && cd ..
+cd responder && docker build -t log-output-responder:latest . && cd ..
+docker pull postgres:18
+k3d image import -c k3s-default log-output-writer:latest log-output-responder:latest postgres:18 dev.local/ping-pong:latest
+
+# apply
+kubectl apply -f manifests-knative/
+kubectl apply -f ../ping-pong/manifests/postgres/
+kubectl apply -f ../ping-pong/manifests-knative/
+kubectl get ksvc -n exercises   # pingpong READY True
+
+# test
+kubectl port-forward -n exercises svc/log-output-svc 8080:80 &
+curl localhost:8080             # ... Ping / Pongs: N
+```
+
 ## Service mesh deployment (Exercise 5.3, Istio ambient on k3d)
 
 **Prerequisite:** Istio ambient (istiod, ztunnel, istio-cni), Kiali, Prometheus and the Gateway API CRDs are already installed on the cluster — see `bookinfo/README.md` and the Istio docs. This exercise does not install Istio itself.

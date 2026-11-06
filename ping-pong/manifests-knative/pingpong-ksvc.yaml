@@ -1,0 +1,20 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: pingpong
+  namespace: exercises
+spec:
+  template:
+    spec:
+      containers:
+        - image: dev.local/ping-pong:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              value: "postgres://postgres:example@postgres-svc:5432/postgres"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080

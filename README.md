@@ -58,6 +58,7 @@ This repository contains all exercise submissions for the [DevOps with Kubernete
 | [**5.3**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/5.3/log_output) | Log app, the Service Mesh Edition | Completed |
 | [**5.4**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/5.4/wiki-sidecar) | Wikipedia with init and sidecar | Completed |
 | [**5.6**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/5.6/knative) | Trying serverless (Knative + Kourier) | Completed |
+| [**5.7**](https://github.com/JuanitoSebastian/DevOps-With-Kubernetes/tree/5.7/ping-pong) | Deploy to serverless (ping-pong as ksvc) | Completed |
 <!-- Add future exercise links below as releases are created -->
 
 ### 4.3 Query

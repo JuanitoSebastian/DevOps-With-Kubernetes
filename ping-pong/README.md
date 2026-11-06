@@ -2,6 +2,33 @@
 
 Ping-pong counter with persistent storage in a PostgreSQL database (StatefulSet).
 
+## Serverless with Knative (Exercise 5.7, local k3d)
+
+Ping-pong runs as a Knative Service (ksvc) instead of a Deployment + Service. Uses the Knative cluster from exercise 5.6 (`../knative/README.md`). Gotchas: in-cluster callers must use the FQDN `http://pingpong.exercises.svc.cluster.local` (set in log-output's `PINGPONG_URL`), and the image is tagged `dev.local/...` so Knative skips registry tag resolving.
+
+### Deploy
+
+```bash
+# build
+docker build -t dev.local/ping-pong:latest .
+docker build -t log-output-writer:latest ../log_output/writer
+docker build -t log-output-responder:latest ../log_output/responder
+docker pull postgres:18
+k3d image import -c k3s-default dev.local/ping-pong:latest log-output-writer:latest log-output-responder:latest postgres:18
+
+# apply
+kubectl apply -f ../log_output/manifests-knative/
+kubectl apply -f manifests/postgres/postgres-service.yaml -f manifests/postgres/postgres-statefulset.yaml
+kubectl apply -f manifests-knative/
+kubectl get ksvc                                       # pingpong READY True
+
+# test
+curl -H "Host: pingpong.exercises.172.18.0.3.sslip.io" http://localhost:8081   # pong 1, pong 2, ...
+kubectl port-forward -n exercises svc/log-output-svc 8080:80 &
+curl localhost:8080            # Ping / Pongs: N
+kubectl get pod -l serving.knative.dev/service=pingpong -n exercises   # gone after ~90 s idle (scale-to-zero)
+```
+
 ## Build
 ```bash
 docker build -t ping-pong .
